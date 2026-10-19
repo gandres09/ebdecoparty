@@ -92,6 +92,7 @@ footer{padding-block:40px 28px}
 footer h2{font-size:clamp(1.6rem,4vw,2.2rem)}
 .foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px 24px;justify-content:space-between;color:var(--muted);font-size:.92rem}
 .foot a.edit{color:inherit;text-decoration:underline;text-underline-offset:3px;padding:6px 0}
+.vacio{grid-column:1/-1;margin:0;padding:48px 0;text-align:center;color:var(--muted,#6b6257)}
 .btns{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;margin-top:16px}
 
 /* desktop */
@@ -230,46 +231,12 @@ var BASE_MSG = "Hola! Quiero pedir presupuesto para decorar un cumpleaños.";
   ["input","change"].forEach(function(ev){ document.querySelector(".q").addEventListener(ev, build); });
   build();
 
-  /* gallery: sample tiles until real photos arrive */
-  var items = [
-    {n:"Fútbol, rojo y azul", g:"futbol", c:["#E03A3E","#2756B8","#E03A3E","#2756B8","#F6C945"], bg:"#2B4A9A", h:1},
-    {n:"Selva", g:"personajes", c:["#F2B632","#F6E2A8","#FFFFFF","#C99A66"], bg:"#E9C98B", h:0},
-    {n:"Pastel", g:"colores", c:["#F6B5CB","#CDB7EE","#F8E48F","#AEDDF4","#F6B5CB"], bg:"#F3CDDA", h:0},
-    {n:"Negro y amarillo", g:"futbol", c:["#1A1A1A","#F6C61F","#1A1A1A","#F6C61F","#4A4A4A"], bg:"#2A2A2A", h:1},
-    {n:"Autos", g:"personajes", c:["#2A63C9","#F0701F","#1D4596","#F7A040","#2A63C9"], bg:"#F0A56A", h:1},
-    {n:"Verde y dorado", g:"colores", c:["#1F6B5E","#38A08E","#D8B658","#A6D4C9","#164A41"], bg:"#2F7F70", h:0},
-    {n:"Princesas", g:"personajes", c:["#F29BC0","#B58CE8","#FFFFFF","#F8D77A"], bg:"#F1C3DC", h:1},
-    {n:"Azul y dorado", g:"colores", c:["#1E3F9E","#D8B658","#1E3F9E","#9FB8F0","#D8B658"], bg:"#2A4FB5", h:0}
-  ];
-  var seed = 11;
-  function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
-  function tile(t){
-    var H = 375, s = '<svg viewBox="0 0 300 ' + H + '" aria-hidden="true">';
-    s += '<rect width="300" height="' + H + '" fill="' + t.bg + '" opacity=".3"/>';
-    var cy = 165;
-    s += '<circle cx="150" cy="' + cy + '" r="82" fill="' + t.bg + '"/>';
-    s += '<circle cx="150" cy="' + cy + '" r="82" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="3"/>';
-    var n = 15, i, a, x, y, r, c;
-    for(i=0;i<n;i++){
-      a = Math.PI * (1.12 - 1.24 * i / (n-1));
-      x = 150 + 108 * Math.cos(a); y = cy + 40 - 112 * Math.sin(a);
-      r = 17 + rnd() * 12; c = t.c[Math.floor(rnd() * t.c.length)];
-      s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + c + '"/>';
-      s += '<circle cx="' + (x - r*.3).toFixed(1) + '" cy="' + (y - r*.35).toFixed(1) + '" r="' + (r*.25).toFixed(1) + '" fill="#fff" opacity=".4"/>';
-    }
-    var base = H - 36;
-    s += '<rect x="48" y="' + base + '" width="204" height="10" rx="3" fill="#000" opacity=".15"/>';
-    [[70,60,60],[150,50,50],[225,56,56]].forEach(function(p,k){
-      s += '<rect x="' + (p[0]-p[1]/2) + '" y="' + (base-p[2]) + '" width="' + p[1] + '" height="' + p[2] + '" rx="8" fill="' + t.c[k % t.c.length] + '"/>';
-    });
-    return s + '</svg>';
-  }
+  /* gallery: photos come from fotos.json (managed in /admin/) */
   var gal = document.getElementById("gal"), filters = document.getElementById("filters");
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
   function showSamples(){
-    gal.innerHTML = items.map(function(t){
-      return '<figure class="tile" data-g="' + t.g + '">' + tile(t) + '<figcaption>' + t.n + '</figcaption></figure>';
-    }).join("");
+    filters.hidden = true;
+    gal.innerHTML = '<p class="vacio">Estamos subiendo nuestros trabajos. Mientras tanto, escribinos por WhatsApp.</p>';
   }
   function showPhotos(list){
     var temas = [], seen = {};
