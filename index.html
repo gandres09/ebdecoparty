@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
 <style>
-/* Layout: photos first (mosaic with theme filters), short services text, three-field quote form that opens WhatsApp, fixed WhatsApp bar on phones. */
+/* Layout: photos first (album grid with a viewer), short services text, three-field quote form that opens WhatsApp, fixed WhatsApp bar on phones. */
 :root{
   --bg:#FAF7F1; --fg:#1F1B15; --muted:#5F584B; --line:#DDD5C4; --panel:#EFE9DB;
   --accent:#A86A00; --wa:#14803B; --wa-fg:#FFFFFF; --warn:#9A4B00;
@@ -52,15 +52,33 @@ a{color:inherit}
 .hero h1{font-size:clamp(2.2rem,6.5vw,3.8rem);max-width:17ch}
 .hero h1 em{font-style:normal;color:var(--accent)}
 .hero p{font-size:1.12rem;color:var(--muted);max-width:44ch;margin:14px 0 22px}
-.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.fbtn{font:inherit;font-weight:600;font-size:.95rem;padding:7px 16px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;min-height:40px}
-.fbtn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;align-items:start}
 .tile{margin:0}
 .tile svg{display:block;width:100%;height:auto;border-radius:6px}
 .tile img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:6px;background:var(--panel)}
 .tile figcaption{padding-top:4px;font-size:.88rem;color:var(--muted)}
 .tile[hidden]{display:none}
+.album{display:block;width:100%;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.album .cover{position:relative;display:block;overflow:hidden;border-radius:6px}
+.album img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--panel);transition:transform .25s ease}
+.album:hover img{transform:scale(1.03)}
+.album .n{position:absolute;left:8px;bottom:8px;padding:3px 10px;border-radius:999px;background:rgba(20,16,10,.72);color:#fff;font-size:.82rem;font-weight:600}
+.album .cap{display:block;padding-top:6px;font-weight:700;font-size:.98rem;line-height:1.25}
+.album:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:6px}
+.vw{border:0;padding:0;width:100%;height:100%;max-width:none;max-height:none;background:rgba(14,11,8,.97);color:#fff}
+.vw[open]{display:flex;flex-direction:column}
+.vw::backdrop{background:rgba(14,11,8,.97)}
+.vw-top{display:flex;align-items:center;gap:12px;padding:12px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));padding-top:max(12px,env(safe-area-inset-top,0px))}
+.vw-t{flex:1;min-width:0;font-family:var(--display);font-weight:700;font-size:1.15rem;line-height:1.2}
+.vw-c{color:#CFC6B4;font-size:.95rem;white-space:nowrap}
+.vw button{font:inherit;color:#fff;background:rgba(255,255,255,.12);border:0;border-radius:999px;width:48px;height:48px;font-size:1.5rem;line-height:1;cursor:pointer}
+.vw button:hover{background:rgba(255,255,255,.22)}
+.vw button:focus-visible,.vw a:focus-visible{outline:3px solid #E3B04B;outline-offset:3px}
+.vw-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 max(8px,env(safe-area-inset-left,0px))}
+.vw-stage img{flex:1;min-width:0;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;touch-action:pan-y}
+.vw-bot{display:flex;justify-content:center;padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px))}
+.vw-wa{display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;background:var(--wa);color:var(--wa-fg);font-weight:700;text-decoration:none}
+@media (max-width:700px){.vw-stage .vw-nav{position:absolute;bottom:84px;z-index:1;width:44px;height:44px}.vw-stage .vw-prev{left:12px}.vw-stage .vw-next{right:12px}.vw-stage{position:relative}}
 .more{margin:18px 0 0}
 .more{display:flex;align-items:center;gap:10px}
 .igicon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--fg);color:var(--fg)}
@@ -141,12 +159,6 @@ footer h2{font-size:clamp(1.6rem,4vw,2.2rem)}
   <header class="hero" id="trabajos">
     <h1>Decoramos tu <em>cumpleaños</em>, vos solo disfrutás</h1>
     <p>Globos, fondos con el personaje que elija el cumpleañero, mesa dulce, números con luz.</p>
-    <div class="filters" id="filters" role="group" aria-label="Filtrar trabajos por tema">
-      <button class="fbtn" type="button" data-f="todos" aria-pressed="true">Todos</button>
-      <button class="fbtn" type="button" data-f="futbol" aria-pressed="false">Fútbol</button>
-      <button class="fbtn" type="button" data-f="personajes" aria-pressed="false">Personajes</button>
-      <button class="fbtn" type="button" data-f="colores" aria-pressed="false">Colores</button>
-    </div>
     <div class="gal" id="gal"></div>
     <p class="more">Más fotos en <a class="igicon" href="https://www.instagram.com/eb_decoparty" target="_blank" rel="noopener" aria-label="Instagram de EB Decoparty"><svg class="igi" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.3" fill="currentColor"/></svg></a></p>
   </header>
@@ -199,6 +211,11 @@ footer h2{font-size:clamp(1.6rem,4vw,2.2rem)}
   </footer>
 </div>
 
+<dialog class="vw" id="vw" aria-label="Fotos del álbum">
+  <div class="vw-top"><div class="vw-t" id="vw-t"></div><span class="vw-c" id="vw-c"></span><button type="button" id="vw-x" aria-label="Cerrar">&#x2715;</button></div>
+  <div class="vw-stage"><button type="button" class="vw-nav vw-prev" id="vw-p" aria-label="Foto anterior">&#x2039;</button><img id="vw-i" alt=""><button type="button" class="vw-nav vw-next" id="vw-n" aria-label="Foto siguiente">&#x203A;</button></div>
+  <div class="vw-bot"><a class="vw-wa" id="vw-w" href="#" target="_blank" rel="noopener">Quiero algo así</a></div>
+</dialog>
 <a class="stick js-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
 
 <script>
@@ -231,30 +248,73 @@ var BASE_MSG = "Hola! Quiero pedir presupuesto para decorar un cumpleaños.";
   ["input","change"].forEach(function(ev){ document.querySelector(".q").addEventListener(ev, build); });
   build();
 
-  /* gallery: photos come from fotos.json (managed in /admin/) */
-  var gal = document.getElementById("gal"), filters = document.getElementById("filters");
+  /* gallery: albums come from albums.json (managed in /admin/) */
+  var gal = document.getElementById("gal");
+  var vw = document.getElementById("vw"), vwI = document.getElementById("vw-i"), cur = null, ix = 0, opener = null;
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
-  function showSamples(){
-    filters.hidden = true;
+  function plural(n){ return n + (n === 1 ? " foto" : " fotos"); }
+  function showEmpty(){
     gal.innerHTML = '<p class="vacio">Estamos subiendo nuestros trabajos. Mientras tanto, escribinos por WhatsApp.</p>';
   }
-  function showPhotos(list){
-    var temas = [], seen = {};
-    list.forEach(function(f){ var k = String(f.tema || ""); if(k && !seen[k]){ seen[k] = 1; temas.push(k); } });
-    gal.innerHTML = list.map(function(f){
-      return '<figure class="tile" data-g="' + esc(f.tema || "") + '"><img src="' + esc(f.file) + '" alt="' + esc(f.titulo || "Decoración de cumpleaños") + '" loading="lazy">' +
-        (f.titulo ? '<figcaption>' + esc(f.titulo) + '</figcaption>' : '') + '</figure>';
+  function showAlbums(list){
+    list = list.filter(function(a){ return a && a.fotos && a.fotos.length; });
+    if(!list.length){ showEmpty(); return; }
+    gal.innerHTML = list.map(function(a, i){
+      return '<button class="album" type="button" data-i="' + i + '" aria-label="' + esc(a.titulo) + ', ' + plural(a.fotos.length) + '">' +
+        '<span class="cover"><img src="' + esc(a.fotos[0].file) + '" alt="" loading="lazy"><span class="n">' + plural(a.fotos.length) + '</span></span>' +
+        '<span class="cap">' + esc(a.titulo) + '</span></button>';
     }).join("");
-    filters.innerHTML = '<button class="fbtn" type="button" data-f="todos" aria-pressed="true">Todos</button>' +
-      temas.map(function(t){ return '<button class="fbtn" type="button" data-f="' + esc(t) + '" aria-pressed="false">' + esc(t) + '</button>'; }).join("");
-    filters.hidden = temas.length < 2;
+    gal.onclick = function(e){
+      var b = e.target.closest(".album"); if(!b) return;
+      openAlbum(list[+b.getAttribute("data-i")], b);
+    };
+  }
+  function paint(){
+    var f = cur.fotos[ix];
+    vwI.src = f.file; vwI.alt = cur.titulo + ", foto " + (ix + 1);
+    document.getElementById("vw-c").textContent = (ix + 1) + " / " + cur.fotos.length;
+    [ix - 1, ix + 1].forEach(function(k){ if(cur.fotos[k]){ var im = new Image(); im.src = cur.fotos[k].file; } });
+    var one = cur.fotos.length < 2;
+    document.getElementById("vw-p").hidden = one; document.getElementById("vw-n").hidden = one;
+  }
+  function step(d){ var n = cur.fotos.length; ix = (ix + d + n) % n; paint(); }
+  function openAlbum(a, from){
+    cur = a; ix = 0; opener = from;
+    document.getElementById("vw-t").textContent = a.titulo;
+    document.getElementById("vw-w").href = link("Hola! Me gustó el álbum \"" + a.titulo + "\". Quiero algo parecido para un cumpleaños.");
+    paint();
+    if(vw.showModal) vw.showModal(); else vw.setAttribute("open", "");
+    document.body.style.overflow = "hidden";
+  }
+  function closeVw(){ if(vw.close) vw.close(); else vw.removeAttribute("open"); }
+  vw.addEventListener("close", function(){ document.body.style.overflow = ""; if(opener) opener.focus(); });
+  document.getElementById("vw-x").addEventListener("click", closeVw);
+  document.getElementById("vw-p").addEventListener("click", function(){ step(-1); });
+  document.getElementById("vw-n").addEventListener("click", function(){ step(1); });
+  vw.addEventListener("keydown", function(e){ if(e.key === "ArrowLeft") step(-1); else if(e.key === "ArrowRight") step(1); });
+  vw.addEventListener("click", function(e){ if(e.target === vw) closeVw(); });
+  var tx = null;
+  vwI.addEventListener("touchstart", function(e){ tx = e.touches[0].clientX; }, {passive:true});
+  vwI.addEventListener("touchend", function(e){
+    if(tx === null || cur.fotos.length < 2) return;
+    var dx = e.changedTouches[0].clientX - tx; tx = null;
+    if(Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+  });
+  function legacy(list){
+    var by = {}, out = [];
+    list.forEach(function(f){
+      var t = String(f.tema || "Otros"), k = t.toLowerCase();
+      if(!by[k]){ by[k] = {titulo:t, fotos:[]}; out.push(by[k]); }
+      by[k].fotos.push({file:f.file});
+    });
+    return out;
   }
   if(window.fetch){
-    fetch("fotos.json", {cache:"no-store"})
-      .then(function(r){ return r.ok ? r.json() : []; })
-      .then(function(list){ if(Array.isArray(list) && list.length) showPhotos(list); else showSamples(); })
-      .catch(showSamples);
-  } else { showSamples(); }
+    fetch("albums.json", {cache:"no-store"})
+      .then(function(r){ if(r.ok) return r.json(); return fetch("fotos.json", {cache:"no-store"}).then(function(r2){ return r2.ok ? r2.json().then(legacy) : []; }); })
+      .then(function(list){ if(Array.isArray(list)) showAlbums(list); else showEmpty(); })
+      .catch(showEmpty);
+  } else { showEmpty(); }
 
   var foot = document.querySelector("footer"), stick = document.querySelector(".stick");
   if(foot && stick && "IntersectionObserver" in window){
@@ -266,12 +326,6 @@ var BASE_MSG = "Hola! Quiero pedir presupuesto para decorar un cumpleaños.";
     }).observe(foot);
   }
 
-  filters.addEventListener("click", function(e){
-    var b = e.target.closest(".fbtn"); if(!b) return;
-    var f = b.getAttribute("data-f");
-    this.querySelectorAll(".fbtn").forEach(function(x){ x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
-    gal.querySelectorAll(".tile").forEach(function(t){ t.hidden = !(f === "todos" || t.getAttribute("data-g") === f); });
-  });
 })();
 </script>
 

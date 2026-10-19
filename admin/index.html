@@ -63,6 +63,16 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
 .card .tag{color:var(--muted);font-size:.95rem}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px}
 .bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:18px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;padding-block:4px 6px}
+.tab{font:inherit;font-weight:700;padding:10px 20px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--fg);min-height:48px;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.mv{min-width:48px;min-height:44px;padding:6px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
+.mv:disabled{opacity:.35;cursor:default}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin-top:18px}
+.pgrid figure{margin:0;display:grid;gap:2px;justify-items:start}
+.pgrid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;display:block;background:var(--panel)}
+.back{margin-bottom:6px}
+.sub b{color:var(--fg)}
 </style>
 </head>
 <body>
@@ -92,34 +102,65 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
   </section>
 
   <main id="panel" hidden>
-    <section>
+    <div class="tabs" role="group" aria-label="Secciones del panel">
+      <button class="tab" type="button" id="tab-up" aria-pressed="true">Subir fotos</button>
+      <button class="tab" type="button" id="tab-al" aria-pressed="false">Álbumes<span id="nal"></span></button>
+    </div>
+
+    <section id="v-up">
       <h1>Subir fotos</h1>
-      <p class="sub">Elegí las fotos de tus trabajos, indicá el tema de cada una y tocá Publicar.</p>
+      <p class="sub">Elegí las fotos, indicá a qué álbum van y tocá Publicar. Después podés ordenarlas desde la sección Álbumes.</p>
       <label class="btn line pick" for="files">Elegir fotos del teléfono</label>
       <input class="sr" type="file" id="files" accept="image/*" multiple>
       <p class="msg info" id="prep" hidden></p>
-      <div class="cards" id="pending"></div>
-      <div class="bar" id="pubbar" hidden>
-        <button class="btn" type="button" id="publish">Publicar</button>
-        <span class="msg" id="status" role="status" style="margin:0"></span>
+      <div id="pbox" hidden>
+        <div class="pgrid" id="pending"></div>
+        <div style="margin-top:22px;max-width:420px">
+          <label class="t" for="albSel">¿A qué álbum van?</label>
+          <select id="albSel"></select>
+          <input type="text" id="albNew" maxlength="40" placeholder="Nombre del álbum nuevo (ej: Cumpleaños Minecraft)" aria-label="Nombre del álbum nuevo" style="margin-top:10px" hidden>
+        </div>
+        <div class="bar">
+          <button class="btn" type="button" id="publish">Publicar</button>
+          <span class="msg" id="status" role="status" style="margin:0"></span>
+        </div>
       </div>
       <p class="msg" id="done" role="status" hidden></p>
     </section>
 
-    <section>
-      <h2>Fotos publicadas</h2>
-      <p class="sub" id="emptyNote" hidden>Todavía no hay fotos propias. La página muestra dibujos de ejemplo hasta que subas la primera.</p>
-      <div class="cards" id="current"></div>
+    <section id="v-al" hidden>
+      <div id="al-list">
+        <h1>Álbumes</h1>
+        <p class="sub" id="emptyNote" hidden>Todavía no hay álbumes. Subí fotos y elegí "Álbum nuevo" para crear el primero.</p>
+        <div class="cards" id="albums"></div>
+        <div class="bar" id="ordbar" hidden>
+          <button class="btn" type="button" id="saveOrd">Guardar el orden</button>
+          <button class="txt" type="button" id="cancelOrd">Descartar</button>
+        </div>
+      </div>
+      <div id="al-det" hidden>
+        <button class="txt back" type="button" id="back">← Todos los álbumes</button>
+        <label class="t" for="alName">Nombre del álbum</label>
+        <input type="text" id="alName" maxlength="40">
+        <p class="sub" style="margin-top:14px">La primera foto es la portada. Usá las flechas para ordenarlas.</p>
+        <div class="cards" id="photos"></div>
+        <div class="bar">
+          <button class="btn" type="button" id="saveAl">Guardar cambios</button>
+          <span class="msg" id="alStatus" role="status" style="margin:0"></span>
+        </div>
+        <div class="row" id="delRow" style="margin-top:22px"></div>
+      </div>
+      <p class="msg" id="alDone" role="status" hidden></p>
     </section>
   </main>
 </div>
 
 <script>
 (function(){
-  var REPO = "gandres09/ebdecoparty", BRANCH = "main", MAX_TEMAS = 12, MAX_ITEMS = 30;
-  var BASE_TEMAS = ["Fútbol","Personajes","Colores"];
+  var REPO = "gandres09/ebdecoparty", BRANCH = "main", MAX_ALBUMS = 30, MAX_ITEMS = 30;
   var NEW = "__nuevo__";
-  var pass = "", pending = [], current = [], busy = false;
+  var pass = "", pending = [], albums = [], busy = false;
+  var openId = null, draft = null, ordDraft = null, focusKey = null;
   var $ = function(id){ return document.getElementById(id); };
 
   function store(v){ try{ if(v) localStorage.setItem("eb-clave", v); else localStorage.removeItem("eb-clave"); }catch(e){} }
@@ -145,79 +186,85 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
     if(st === 409 || st === 422) return "Se hizo otro cambio al mismo tiempo. Probá de nuevo.";
     return "No se pudo completar. Probá de nuevo en un momento.";
   }
-  function readList(){
-    return gh("/contents/fotos.json?ref=" + BRANCH).then(function(f){
-      var list = JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, "")))));
-      return Array.isArray(list) ? list : [];
-    }, function(e){ if(e.status === 404) return []; throw e; });
-  }
-  function cleanTitle(t){ return String(t || "").replace(/[\u0000-\u001f<>"]/g, "").trim().slice(0, 60); }
-  function cleanTema(t){
-    var x = String(t || "").replace(/[\u0000-\u001f<>"&]/g, "").replace(/\s+/g, " ").trim().slice(0, 30);
+  function decode(f){ return JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, ""))))); }
+  function norm(t){ return String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim(); }
+  function cleanTitle(t){
+    var x = String(t || "").replace(/[\u0000-\u001f<>"&]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
     return x.charAt(0).toUpperCase() + x.slice(1);
   }
-  function normTema(t){ return String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
   function rid(){ var a = new Uint8Array(3); crypto.getRandomValues(a); return Date.now().toString(36) + "-" + Array.prototype.map.call(a, function(x){ return ("0" + x.toString(16)).slice(-2); }).join(""); }
 
-  function publish(add, remove){
-    if(!add.length && !remove.length) return Promise.reject(new Error("No hay cambios para publicar"));
-    if(add.length > MAX_ITEMS || remove.length > MAX_ITEMS) return Promise.reject(new Error("Son demasiadas fotos juntas"));
-    for(var i = 0; i < add.length; i++){
-      if(!/^[0-9a-f]{40}$/.test(add[i].sha || "") || !cleanTema(add[i].tema)) return Promise.reject(new Error("Hay una foto sin tema"));
-    }
+  /* Lee los álbumes. Si todavía existe la lista vieja (fotos.json con temas), la convierte. */
+  function readData(){
+    return gh("/contents/albums.json?ref=" + BRANCH).then(function(f){
+      var l = decode(f); return {albums:Array.isArray(l) ? l : [], legacy:false};
+    }, function(e){
+      if(e.status !== 404) throw e;
+      return gh("/contents/fotos.json?ref=" + BRANCH).then(function(f){
+        var l = decode(f), by = {}, out = [];
+        (Array.isArray(l) ? l : []).forEach(function(x){
+          var t = cleanTitle(x.tema) || "Otros", k = norm(t);
+          if(!by[k]){ by[k] = {id:"a-" + k.replace(/[^a-z0-9]+/g, "-"), titulo:t, fotos:[]}; out.push(by[k]); }
+          by[k].fotos.push({file:x.file});
+        });
+        return {albums:out, legacy:true};
+      }, function(e2){ if(e2.status === 404) return {albums:[], legacy:false}; throw e2; });
+    });
+  }
+  function find(list, id){ for(var i = 0; i < list.length; i++){ if(list[i].id === id) return list[i]; } return null; }
+
+  /* Un solo cambio (commit) con todo: fotos nuevas, orden, nombres y borrados. */
+  function commit(o){
+    var add = o.add || [];
+    if(add.length > MAX_ITEMS) return Promise.reject(new Error("Son demasiadas fotos juntas"));
+    for(var i = 0; i < add.length; i++){ if(!/^[0-9a-f]{40}$/.test(add[i] || "")) return Promise.reject(new Error("Una foto no se subió bien. Probá de nuevo.")); }
     var headSha, treeSha, next;
     return gh("/git/ref/heads/" + BRANCH).then(function(ref){
       headSha = ref.object.sha; return gh("/git/commits/" + headSha);
-    }).then(function(commit){ treeSha = commit.tree.sha; return readList(); })
-    .then(function(list){
-      next = list; var entries = [];
-      remove.forEach(function(file){
-        if(typeof file !== "string" || !/^fotos\/[a-z0-9-]+\.jpg$/.test(file)) return;
-        if(!next.some(function(f){ return f.file === file; })) return;
-        next = next.filter(function(f){ return f.file !== file; });
-        entries.push({path:file, mode:"100644", type:"blob", sha:null});
+    }).then(function(c){ treeSha = c.tree.sha; return readData(); })
+    .then(function(d){
+      next = d.albums; var entries = [], del = [];
+      if(o.edit) del = o.edit(next) || [];
+      del.forEach(function(file){
+        if(typeof file === "string" && /^fotos\/[a-z0-9-]+\.jpg$/.test(file)) entries.push({path:file, mode:"100644", type:"blob", sha:null});
       });
-      var known = {};
-      next.forEach(function(f){ if(f.tema && !known[normTema(f.tema)]) known[normTema(f.tema)] = f.tema; });
-      var created = [];
-      add.forEach(function(a){
-        var label = cleanTema(a.tema), key = normTema(label);
-        if(!known[key]) known[key] = label;
-        var file = "fotos/" + rid() + ".jpg";
-        entries.push({path:file, mode:"100644", type:"blob", sha:a.sha});
-        created.push({file:file, tema:known[key], titulo:cleanTitle(a.titulo)});
-      });
-      next = created.concat(next);
-      var used = {}; next.forEach(function(f){ if(f.tema) used[normTema(f.tema)] = 1; });
-      if(Object.keys(used).length > MAX_TEMAS) throw new Error("Son demasiados temas distintos (máximo " + MAX_TEMAS + "). Usá uno que ya exista.");
-      entries.push({path:"fotos.json", mode:"100644", type:"blob", content:JSON.stringify(next, null, 2) + "\n"});
+      if(add.length){
+        var t = o.album && o.album.id ? find(next, o.album.id) : null;
+        if(!t){
+          var title = cleanTitle(o.album && o.album.titulo);
+          if(!title) throw new Error("Falta elegir el álbum");
+          next.forEach(function(a){ if(!t && norm(a.titulo) === norm(title)) t = a; });
+          if(!t){
+            if(next.length >= MAX_ALBUMS) throw new Error("Ya hay demasiados álbumes (máximo " + MAX_ALBUMS + ").");
+            t = {id:rid(), titulo:title, fotos:[]}; next.push(t);
+          }
+        }
+        add.forEach(function(sha){
+          var file = "fotos/" + rid() + ".jpg";
+          entries.push({path:file, mode:"100644", type:"blob", sha:sha});
+          t.fotos.push({file:file});
+        });
+      }
+      if(d.legacy) entries.push({path:"fotos.json", mode:"100644", type:"blob", sha:null});
+      entries.push({path:"albums.json", mode:"100644", type:"blob", content:JSON.stringify(next, null, 2) + "\n"});
       return gh("/git/trees", "POST", {base_tree:treeSha, tree:entries});
     }).then(function(tree){
-      return gh("/git/commits", "POST", {message:"Actualiza las fotos desde el panel [skip netlify]", tree:tree.sha, parents:[headSha]});
+      return gh("/git/commits", "POST", {message:"Actualiza los álbumes desde el panel [skip netlify]", tree:tree.sha, parents:[headSha]});
     }).then(function(made){
       return gh("/git/refs/heads/" + BRANCH, "PATCH", {sha:made.sha});
-    }).then(function(){ return {ok:true, fotos:next}; });
+    }).then(function(){ return next; });
   }
-
-  /* Misma interfaz que usa el resto del panel */
-  function call(body){
-    switch(body.action){
-      case "check": return gh("").then(function(){ return {ok:true}; });
-      case "list": return readList().then(function(l){ return {fotos:l}; });
-      case "blob": return gh("/git/blobs", "POST", {content:body.data, encoding:"base64"}).then(function(b){ return {sha:b.sha}; });
-      case "publish": return publish(body.add || [], body.remove || []);
-    }
-    return Promise.reject(new Error("Acción desconocida"));
-  }
+  function blob(b64){ return gh("/git/blobs", "POST", {content:b64, encoding:"base64"}).then(function(b){ return b.sha; }); }
   function say(el, text, kind){ el.textContent = text; el.className = "msg " + (kind || ""); }
+  function show(el, text, kind){ say(el, text, kind); el.hidden = !text; }
 
   /* login */
   function enter(p, fromSaved){
     pass = p;
-    return call({action:"check"}).then(function(){
+    return gh("").then(function(){
       store(p);
       $("login").hidden = true; $("panel").hidden = false; $("logout").hidden = false;
-      return loadList();
+      return loadAlbums();
     }).catch(function(e){
       pass = "";
       if(fromSaved){ store(""); return; }
@@ -230,59 +277,179 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
     enter($("pw").value, false).then(function(){ b.disabled = false; if(!$("panel").hidden) say($("loginMsg"), "", ""); });
   });
   $("logout").addEventListener("click", function(){
-    store(""); pass = ""; pending = []; renderPending();
+    store(""); pass = ""; pending = []; albums = []; openId = null; draft = null; ordDraft = null;
+    renderPending();
     $("panel").hidden = true; $("login").hidden = false; $("logout").hidden = true; $("pw").value = "";
   });
-  var s = saved(); if(s) enter(s, true);
+  var s0 = saved(); if(s0) enter(s0, true);
 
-  /* list of published photos */
-  function loadList(){
-    return call({action:"list"}).then(function(j){ current = j.fotos || []; renderCurrent(); })
-      .catch(function(e){ say($("done"), e.message, "err"); $("done").hidden = false; });
+  /* secciones */
+  function setView(v){
+    $("v-up").hidden = v !== "up"; $("v-al").hidden = v !== "al";
+    $("tab-up").setAttribute("aria-pressed", v === "up" ? "true" : "false");
+    $("tab-al").setAttribute("aria-pressed", v === "al" ? "true" : "false");
   }
-  function temaList(){
-    var out = [], seen = {};
-    current.map(function(f){ return f.tema; }).concat(BASE_TEMAS).forEach(function(t){
-      var k = String(t || "").toLowerCase(); if(t && !seen[k]){ seen[k] = 1; out.push(t); }
-    });
-    return out;
+  $("tab-up").addEventListener("click", function(){ setView("up"); });
+  $("tab-al").addEventListener("click", function(){ setView("al"); });
+
+  function loadAlbums(){
+    return readData().then(function(d){ albums = d.albums; refreshAll(); })
+      .catch(function(e){ show($("done"), e.message, "err"); });
   }
-  function temaName(k){ return k; }
-  function renderCurrent(){
-    var box = $("current"); box.innerHTML = "";
-    $("emptyNote").hidden = current.length > 0;
-    current.forEach(function(f){
+  function refreshAll(){
+    $("nal").textContent = albums.length ? " (" + albums.length + ")" : "";
+    renderAlbSel(); renderAlbums(); refreshBar();
+  }
+
+  function thumb(file){
+    var img = document.createElement("img"); img.alt = ""; img.src = "../" + file; img.loading = "lazy";
+    img.onerror = function(){ var ph = document.createElement("div"); ph.className = "ph"; ph.textContent = "Publicándose…"; img.replaceWith(ph); };
+    return img;
+  }
+  function btn(text, cls, fn, label){
+    var b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = text;
+    if(label) b.setAttribute("aria-label", label);
+    if(fn) b.addEventListener("click", fn);
+    return b;
+  }
+  function plural(n){ return n + (n === 1 ? " foto" : " fotos"); }
+
+  /* ---- sección Álbumes ---- */
+  function orderedIds(){ return ordDraft || albums.map(function(a){ return a.id; }); }
+  function renderAlbums(){
+    if(openId && !find(albums, openId)){ openId = null; draft = null; }
+    $("al-list").hidden = !!openId; $("al-det").hidden = !openId;
+    if(openId) return renderDetail();
+    var box = $("albums"); box.innerHTML = "";
+    $("emptyNote").hidden = albums.length > 0;
+    var ids = orderedIds();
+    ids.forEach(function(id, idx){
+      var a = find(albums, id); if(!a) return;
       var card = document.createElement("div"); card.className = "card";
-      var img = document.createElement("img"); img.alt = ""; img.src = "../" + f.file;
-      img.onerror = function(){ var ph = document.createElement("div"); ph.className = "ph"; ph.textContent = "Publicándose…"; img.replaceWith(ph); };
+      if(a.fotos.length) card.appendChild(thumb(a.fotos[0].file)); else { var ph = document.createElement("div"); ph.className = "ph"; ph.textContent = "Sin fotos"; card.appendChild(ph); }
       var body = document.createElement("div"); body.className = "body";
-      var name = document.createElement("div"); name.className = "name"; name.textContent = f.titulo || "Sin nombre";
-      var tag = document.createElement("div"); tag.className = "tag"; tag.textContent = "Tema: " + temaName(f.tema);
+      var name = document.createElement("div"); name.className = "name"; name.textContent = a.titulo;
+      var tag = document.createElement("div"); tag.className = "tag"; tag.textContent = plural(a.fotos.length);
       var row = document.createElement("div"); row.className = "row";
-      var del = document.createElement("button"); del.type = "button"; del.className = "txt bad"; del.textContent = "Quitar";
-      del.addEventListener("click", function(){ askRemove(row, f); });
-      row.appendChild(del);
+      row.appendChild(btn("Abrir", "txt", function(){ openAlbum(a.id); }, "Abrir el álbum " + a.titulo));
+      var up = btn("↑", "mv", function(){ moveAlbum(idx, -1); }, "Subir el álbum " + a.titulo); up.disabled = idx === 0; up.setAttribute("data-k", "au" + a.id);
+      var dn = btn("↓", "mv", function(){ moveAlbum(idx, 1); }, "Bajar el álbum " + a.titulo); dn.disabled = idx === ids.length - 1; dn.setAttribute("data-k", "ad" + a.id);
+      row.appendChild(up); row.appendChild(dn);
       body.appendChild(name); body.appendChild(tag); body.appendChild(row);
-      card.appendChild(img); card.appendChild(body); box.appendChild(card);
+      card.appendChild(body); box.appendChild(card);
     });
+    $("ordbar").hidden = !ordDraft;
+    restoreFocus();
   }
-  function askRemove(row, f){
-    row.innerHTML = "";
-    var q = document.createElement("span"); q.textContent = "¿Quitar esta foto?"; q.style.fontWeight = "700";
-    var yes = document.createElement("button"); yes.type = "button"; yes.className = "txt bad"; yes.textContent = "Sí, quitar";
-    var no = document.createElement("button"); no.type = "button"; no.className = "txt"; no.textContent = "No";
-    no.addEventListener("click", renderCurrent);
-    yes.addEventListener("click", function(){
-      yes.disabled = true; q.textContent = "Quitando…";
-      call({action:"publish", add:[], remove:[f.file]}).then(function(j){
-        current = j.fotos || []; renderCurrent();
-        say($("done"), "Listo. La foto se va a sacar de la página en uno o dos minutos.", "good"); $("done").hidden = false;
-      }).catch(function(e){ say($("done"), e.message, "err"); $("done").hidden = false; renderCurrent(); });
+  function restoreFocus(){
+    if(!focusKey) return;
+    var el = document.querySelector('[data-k="' + focusKey + '"]');
+    if(el && !el.disabled) el.focus();
+    focusKey = null;
+  }
+  function moveAlbum(idx, d){
+    var ids = orderedIds().slice(), j = idx + d; if(j < 0 || j >= ids.length) return;
+    var t = ids[idx]; ids[idx] = ids[j]; ids[j] = t; ordDraft = ids;
+    focusKey = (d < 0 ? "au" : "ad") + t; renderAlbums();
+  }
+  $("cancelOrd").addEventListener("click", function(){ ordDraft = null; renderAlbums(); });
+  $("saveOrd").addEventListener("click", function(){
+    if(busy || !ordDraft) return; busy = true; var ids = ordDraft.slice(), b = this; b.disabled = true;
+    show($("alDone"), "Guardando…", "info");
+    commit({edit:function(list){
+      var pos = {}; ids.forEach(function(id, i){ pos[id] = i; });
+      list.sort(function(x, y){ return (pos[x.id] === undefined ? 999 : pos[x.id]) - (pos[y.id] === undefined ? 999 : pos[y.id]); });
+    }}).then(function(n){
+      albums = n; ordDraft = null; refreshAll();
+      show($("alDone"), "Listo. El nuevo orden se ve en la página en uno o dos minutos.", "good");
+    }).catch(function(e){ show($("alDone"), e.message, "err"); }).then(function(){ busy = false; b.disabled = false; });
+  });
+
+  function openAlbum(id){
+    var a = find(albums, id); if(!a) return;
+    openId = id; ordDraft = null;
+    draft = {id:id, titulo:a.titulo, fotos:a.fotos.map(function(f){ return {file:f.file}; }), removed:[], dirty:false};
+    $("alDone").hidden = true; $("alStatus").textContent = "";
+    renderAlbums(); window.scrollTo(0, 0);
+  }
+  function renderDetail(){
+    var nm = $("alName"); if(document.activeElement !== nm) nm.value = draft.titulo;
+    var box = $("photos"); box.innerHTML = "";
+    var n = draft.fotos.length;
+    draft.fotos.forEach(function(f, idx){
+      var card = document.createElement("div"); card.className = "card";
+      card.appendChild(thumb(f.file));
+      var body = document.createElement("div"); body.className = "body";
+      var name = document.createElement("div"); name.className = "name";
+      name.textContent = "Foto " + (idx + 1) + " de " + n + (idx === 0 ? " · portada" : "");
+      var row = document.createElement("div"); row.className = "row";
+      var up = btn("↑", "mv", function(){ movePhoto(idx, -1); }, "Mover la foto " + (idx + 1) + " hacia adelante"); up.disabled = idx === 0; up.setAttribute("data-k", "pu" + f.file);
+      var dn = btn("↓", "mv", function(){ movePhoto(idx, 1); }, "Mover la foto " + (idx + 1) + " hacia atrás"); dn.disabled = idx === n - 1; dn.setAttribute("data-k", "pd" + f.file);
+      row.appendChild(up); row.appendChild(dn);
+      if(idx > 0) row.appendChild(btn("Portada", "txt", function(){ var x = draft.fotos.splice(idx, 1)[0]; draft.fotos.unshift(x); draft.dirty = true; focusKey = null; renderDetail(); }, "Poner la foto " + (idx + 1) + " de portada"));
+      row.appendChild(btn("Quitar", "txt bad", function(){
+        draft.removed.push(f.file); draft.fotos.splice(idx, 1); draft.dirty = true; renderDetail();
+      }, "Quitar la foto " + (idx + 1)));
+      body.appendChild(name); body.appendChild(row);
+      card.appendChild(body); box.appendChild(card);
     });
-    row.appendChild(q); row.appendChild(yes); row.appendChild(no);
+    if(!n){ var p = document.createElement("p"); p.className = "sub"; p.textContent = "Este álbum no tiene fotos. Subí fotos desde la sección Subir fotos."; box.appendChild(p); }
+    $("saveAl").disabled = busy || !draft.dirty;
+    renderDelRow(false);
+    restoreFocus();
+  }
+  function movePhoto(idx, d){
+    var j = idx + d; if(j < 0 || j >= draft.fotos.length) return;
+    var t = draft.fotos[idx]; draft.fotos[idx] = draft.fotos[j]; draft.fotos[j] = t; draft.dirty = true;
+    focusKey = (d < 0 ? "pu" : "pd") + t.file; renderDetail();
+  }
+  $("alName").addEventListener("input", function(){ draft.titulo = this.value; draft.dirty = true; $("saveAl").disabled = busy; });
+  $("back").addEventListener("click", function(){
+    if(draft && draft.dirty && !window.confirm("Hay cambios sin guardar. ¿Salir igual?")) return;
+    openId = null; draft = null; renderAlbums();
+  });
+  $("saveAl").addEventListener("click", function(){
+    if(busy || !draft || !draft.dirty) return;
+    var title = cleanTitle(draft.titulo);
+    if(!title){ say($("alStatus"), "El álbum necesita un nombre.", "err"); return; }
+    busy = true; this.disabled = true; say($("alStatus"), "Guardando…", "info");
+    var d = draft;
+    commit({edit:function(list){
+      var a = find(list, d.id); if(!a) throw new Error("Ese álbum ya no existe.");
+      var by = {}; a.fotos.forEach(function(f){ by[f.file] = f; });
+      var out = [], used = {};
+      d.fotos.forEach(function(f){ if(by[f.file]){ out.push(by[f.file]); used[f.file] = 1; } });
+      var gone = [];
+      d.removed.forEach(function(f){ if(by[f]){ gone.push(f); used[f] = 1; } });
+      a.fotos.forEach(function(f){ if(!used[f.file]) out.push(f); });
+      a.fotos = out; a.titulo = title;
+      return gone;
+    }}).then(function(n){
+      albums = n; var a = find(n, d.id);
+      draft = a ? {id:a.id, titulo:a.titulo, fotos:a.fotos.map(function(f){ return {file:f.file}; }), removed:[], dirty:false} : null;
+      refreshAll(); say($("alStatus"), "", "");
+      show($("alDone"), "Listo. Los cambios se ven en la página en uno o dos minutos.", "good");
+    }).catch(function(e){ say($("alStatus"), e.message, "err"); }).then(function(){ busy = false; if(draft) $("saveAl").disabled = !draft.dirty; });
+  });
+  function renderDelRow(ask){
+    var row = $("delRow"); row.innerHTML = "";
+    if(!ask){ row.appendChild(btn("Borrar el álbum entero", "txt bad", function(){ renderDelRow(true); })); return; }
+    var q = document.createElement("span"); q.style.fontWeight = "700"; q.textContent = "¿Borrar el álbum y sus fotos?";
+    var yes = btn("Sí, borrar", "txt bad", function(){
+      if(busy) return; busy = true; yes.disabled = true; q.textContent = "Borrando…"; var id = draft.id;
+      commit({edit:function(list){
+        var i = -1; list.forEach(function(a, k){ if(a.id === id) i = k; });
+        if(i < 0) return [];
+        var files = list[i].fotos.map(function(f){ return f.file; }); list.splice(i, 1); return files;
+      }}).then(function(n){
+        albums = n; openId = null; draft = null; refreshAll();
+        show($("alDone"), "Listo. El álbum se saca de la página en uno o dos minutos.", "good");
+      }).catch(function(e){ renderDelRow(false); say($("alStatus"), e.message, "err"); }).then(function(){ busy = false; });
+    });
+    row.appendChild(q); row.appendChild(yes); row.appendChild(btn("No", "txt", function(){ renderDelRow(false); }));
   }
 
-  /* choosing and preparing photos */
+  /* ---- sección Subir ---- */
   function shrink(file){
     return (window.createImageBitmap ? createImageBitmap(file, {imageOrientation:"from-image"}) : Promise.reject())
       .catch(function(){ return new Promise(function(res, rej){ var i = new Image(); i.onload = function(){ res(i); }; i.onerror = rej; i.src = URL.createObjectURL(file); }); })
@@ -292,11 +459,11 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
         var c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
         c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
         return new Promise(function(res){ c.toBlob(res, "image/jpeg", 0.82); });
-      }).then(function(blob){
+      }).then(function(b){
         return new Promise(function(res){
           var fr = new FileReader();
-          fr.onload = function(){ res({url:URL.createObjectURL(blob), b64:String(fr.result).split(",")[1]}); };
-          fr.readAsDataURL(blob);
+          fr.onload = function(){ res({url:URL.createObjectURL(b), b64:String(fr.result).split(",")[1]}); };
+          fr.readAsDataURL(b);
         });
       });
   }
@@ -307,68 +474,61 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
     var p = $("prep"); p.hidden = false; say(p, "Preparando fotos…", "info");
     var bad = 0;
     files.reduce(function(chain, f){
-      return chain.then(function(){ return shrink(f).then(function(r){ pending.push({url:r.url, b64:r.b64, tema:"", titulo:""}); }).catch(function(){ bad++; }); });
+      return chain.then(function(){ return shrink(f).then(function(r){ pending.push({url:r.url, b64:r.b64}); }).catch(function(){ bad++; }); });
     }, Promise.resolve()).then(function(){
       if(bad) say(p, "No pude leer " + bad + (bad === 1 ? " foto." : " fotos."), "err"); else p.hidden = true;
       renderPending();
     });
   });
-
+  function renderAlbSel(){
+    var sel = $("albSel"), cur = sel.value; sel.innerHTML = "";
+    var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Elegí el álbum"; sel.appendChild(o0);
+    albums.forEach(function(a){ var o = document.createElement("option"); o.value = a.id; o.textContent = a.titulo; sel.appendChild(o); });
+    var oN = document.createElement("option"); oN.value = NEW; oN.textContent = "Álbum nuevo…"; sel.appendChild(oN);
+    sel.value = cur && sel.querySelector('option[value="' + cur + '"]') ? cur : (albums.length ? "" : NEW);
+    $("albNew").hidden = sel.value !== NEW;
+  }
+  $("albSel").addEventListener("change", function(){ $("albNew").hidden = this.value !== NEW; if(this.value === NEW) $("albNew").focus(); refreshBar(); });
+  $("albNew").addEventListener("input", refreshBar);
   function renderPending(){
     var box = $("pending"); box.innerHTML = "";
     pending.forEach(function(it, idx){
-      var card = document.createElement("div"); card.className = "card";
+      var fig = document.createElement("figure");
       var img = document.createElement("img"); img.alt = "Foto " + (idx + 1); img.src = it.url;
-      var body = document.createElement("div"); body.className = "body";
-      var lt = document.createElement("label"); lt.className = "t"; lt.textContent = "Tema (la pestaña donde va a aparecer)"; lt.htmlFor = "tema" + idx;
-      var sel = document.createElement("select"); sel.id = "tema" + idx;
-      var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Elegí el tema"; sel.appendChild(o0);
-      temaList().forEach(function(t){ var o = document.createElement("option"); o.value = t; o.textContent = t; sel.appendChild(o); });
-      var oN = document.createElement("option"); oN.value = NEW; oN.textContent = "Otro tema nuevo…"; sel.appendChild(oN);
-      var nw = document.createElement("input"); nw.type = "text"; nw.maxLength = 30; nw.placeholder = "Nombre del tema nuevo"; nw.setAttribute("aria-label", "Nombre del tema nuevo");
-      var isNew = it.nuevo || (it.tema && temaList().indexOf(it.tema) === -1);
-      if(isNew){ sel.value = NEW; nw.value = it.tema || ""; } else { sel.value = it.tema || ""; }
-      nw.hidden = !isNew;
-      sel.addEventListener("change", function(){
-        if(sel.value === NEW){ it.nuevo = true; it.tema = nw.value.trim(); nw.hidden = false; nw.focus(); }
-        else { it.nuevo = false; it.tema = sel.value; nw.hidden = true; }
-        refreshBar();
-      });
-      nw.addEventListener("input", function(){ it.tema = nw.value.trim(); refreshBar(); });
-      var ln = document.createElement("label"); ln.className = "t"; ln.textContent = "Nombre (opcional)"; ln.htmlFor = "nom" + idx;
-      var inp = document.createElement("input"); inp.type = "text"; inp.id = "nom" + idx; inp.maxLength = 60; inp.placeholder = "Ej: Selva, Boca, Pastel"; inp.value = it.titulo;
-      inp.addEventListener("input", function(){ it.titulo = inp.value; });
-      var rm = document.createElement("button"); rm.type = "button"; rm.className = "txt"; rm.textContent = "Sacar esta foto";
-      rm.addEventListener("click", function(){ pending.splice(idx, 1); renderPending(); });
-      body.appendChild(lt); body.appendChild(sel); body.appendChild(nw); body.appendChild(ln); body.appendChild(inp); body.appendChild(rm);
-      card.appendChild(img); card.appendChild(body); box.appendChild(card);
+      fig.appendChild(img);
+      fig.appendChild(btn("Sacar", "txt", function(){ pending.splice(idx, 1); renderPending(); }, "Sacar la foto " + (idx + 1)));
+      box.appendChild(fig);
     });
+    $("pbox").hidden = pending.length === 0;
     refreshBar();
   }
-  function refreshBar(){
-    var n = pending.length, missing = pending.filter(function(x){ return !x.tema; }).length;
-    $("pubbar").hidden = n === 0;
-    var b = $("publish"); b.textContent = "Publicar " + n + (n === 1 ? " foto" : " fotos");
-    b.disabled = busy || missing > 0;
-    if(!busy) say($("status"), missing ? "Falta elegir el tema en " + missing + (missing === 1 ? " foto." : " fotos.") : "", "info");
+  function target(){
+    var v = $("albSel").value;
+    if(v === NEW) return {titulo:$("albNew").value};
+    return v ? {id:v} : null;
   }
-
-  /* publish: upload each photo, then one commit with all of them */
+  function refreshBar(){
+    var n = pending.length, t = target(), ok = t && (t.id || cleanTitle(t.titulo));
+    var b = $("publish"); b.textContent = "Publicar " + plural(n);
+    b.disabled = busy || n === 0 || !ok;
+    if(!busy) say($("status"), n && !ok ? "Falta elegir el álbum." : "", "info");
+  }
   $("publish").addEventListener("click", function(){
     if(busy || !pending.length) return;
+    var t = target(); if(!t || !(t.id || cleanTitle(t.titulo))) return;
     busy = true; $("publish").disabled = true; $("done").hidden = true;
     var st = $("status"), shas = [], list = pending.slice(), i = 0;
     function next(){
       if(i >= list.length) return Promise.resolve();
       say(st, "Subiendo foto " + (i + 1) + " de " + list.length + "…", "info");
-      return call({action:"blob", data:list[i].b64}).then(function(j){ shas.push(j.sha); i++; return next(); });
+      return blob(list[i].b64).then(function(sha){ shas.push(sha); i++; return next(); });
     }
     next().then(function(){
       say(st, "Publicando…", "info");
-      return call({action:"publish", add:list.map(function(it, k){ return {sha:shas[k], tema:it.tema, titulo:it.titulo}; }), remove:[]});
-    }).then(function(j){
-      pending = []; current = j.fotos || []; renderPending(); renderCurrent();
-      say($("done"), "Listo. Las fotos van a aparecer en la página en uno o dos minutos.", "good"); $("done").hidden = false;
+      return commit({add:shas, album:t});
+    }).then(function(n){
+      pending = []; albums = n; $("albSel").value = ""; refreshAll(); renderPending();
+      show($("done"), "Listo. Las fotos van a aparecer en la página en uno o dos minutos. Podés ordenarlas en la sección Álbumes.", "good");
     }).catch(function(e){
       say(st, e.message || "No se pudo publicar. Probá de nuevo.", "err");
     }).then(function(){ busy = false; refreshBar(); });
