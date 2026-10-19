@@ -1,0 +1,35 @@
+[
+  {
+    "id": "a-personajes",
+    "titulo": "Personajes",
+    "fotos": [
+      {
+        "file": "fotos/mvff60hj-292fc4.jpg"
+      },
+      {
+        "file": "fotos/mvff4b6v-94e5ce.jpg"
+      }
+    ]
+  },
+  {
+    "id": "a-colores",
+    "titulo": "Colores",
+    "fotos": [
+      {
+        "file": "fotos/mvfepdiw-d83fb1.jpg"
+      }
+    ]
+  },
+  {
+    "id": "mvfgy0l7-d3c46e",
+    "titulo": "Prueba 3",
+    "fotos": [
+      {
+        "file": "fotos/mvfgy0l7-257199.jpg"
+      },
+      {
+        "file": "fotos/mvfgy0l7-dde691.jpg"
+      }
+    ]
+  }
+]
