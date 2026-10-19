@@ -1,5 +1,14 @@
 [
   {
+    "id": "a-colores",
+    "titulo": "Colores",
+    "fotos": [
+      {
+        "file": "fotos/mvfepdiw-d83fb1.jpg"
+      }
+    ]
+  },
+  {
     "id": "a-personajes",
     "titulo": "Personajes",
     "fotos": [
@@ -8,15 +17,6 @@
       },
       {
         "file": "fotos/mvff4b6v-94e5ce.jpg"
-      }
-    ]
-  },
-  {
-    "id": "a-colores",
-    "titulo": "Colores",
-    "fotos": [
-      {
-        "file": "fotos/mvfepdiw-d83fb1.jpg"
       }
     ]
   },
