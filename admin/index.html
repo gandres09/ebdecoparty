@@ -72,6 +72,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
 .pgrid figure{margin:0;display:grid;gap:2px;justify-items:start}
 .pgrid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;display:block;background:var(--panel)}
 .back{margin-bottom:6px}
+.nota{margin:22px 0 0;max-width:52ch;font-size:.85rem;line-height:1.45;color:var(--muted)}
 .sub b{color:var(--fg)}
 </style>
 </head>
@@ -126,6 +127,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
         </div>
       </div>
       <p class="msg" id="done" role="status" hidden></p>
+      <p class="nota">Ojo: los cambios tardan en verse en la página. Suele ser un par de minutos, pero a veces más de media hora. No hace falta volver a subir ni guardar de nuevo.</p>
     </section>
 
     <section id="v-al" hidden>
@@ -151,6 +153,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
         <div class="row" id="delRow" style="margin-top:22px"></div>
       </div>
       <p class="msg" id="alDone" role="status" hidden></p>
+      <p class="nota">Ojo: los cambios tardan en verse en la página. Suele ser un par de minutos, pero a veces más de media hora. No hace falta volver a subir ni guardar de nuevo.</p>
     </section>
   </main>
 </div>
@@ -361,7 +364,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
       list.sort(function(x, y){ return (pos[x.id] === undefined ? 999 : pos[x.id]) - (pos[y.id] === undefined ? 999 : pos[y.id]); });
     }}).then(function(n){
       albums = n; ordDraft = null; refreshAll();
-      show($("alDone"), "Listo. El nuevo orden se ve en la página en uno o dos minutos.", "good");
+      show($("alDone"), "Listo. El nuevo orden se ve en la página en unos minutos.", "good");
     }).catch(function(e){ show($("alDone"), e.message, "err"); }).then(function(){ busy = false; b.disabled = false; });
   });
 
@@ -428,7 +431,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
       albums = n; var a = find(n, d.id);
       draft = a ? {id:a.id, titulo:a.titulo, fotos:a.fotos.map(function(f){ return {file:f.file}; }), removed:[], dirty:false} : null;
       refreshAll(); say($("alStatus"), "", "");
-      show($("alDone"), "Listo. Los cambios se ven en la página en uno o dos minutos.", "good");
+      show($("alDone"), "Listo. Los cambios se ven en la página en unos minutos.", "good");
     }).catch(function(e){ say($("alStatus"), e.message, "err"); }).then(function(){ busy = false; if(draft) $("saveAl").disabled = !draft.dirty; });
   });
   function renderDelRow(ask){
@@ -443,7 +446,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
         var files = list[i].fotos.map(function(f){ return f.file; }); list.splice(i, 1); return files;
       }}).then(function(n){
         albums = n; openId = null; draft = null; refreshAll();
-        show($("alDone"), "Listo. El álbum se saca de la página en uno o dos minutos.", "good");
+        show($("alDone"), "Listo. El álbum se saca de la página en unos minutos.", "good");
       }).catch(function(e){ renderDelRow(false); say($("alStatus"), e.message, "err"); }).then(function(){ busy = false; });
     });
     row.appendChild(q); row.appendChild(yes); row.appendChild(btn("No", "txt", function(){ renderDelRow(false); }));
@@ -528,7 +531,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
       return commit({add:shas, album:t});
     }).then(function(n){
       pending = []; albums = n; $("albSel").value = ""; refreshAll(); renderPending();
-      show($("done"), "Listo. Las fotos van a aparecer en la página en uno o dos minutos. Podés ordenarlas en la sección Álbumes.", "good");
+      show($("done"), "Listo. Las fotos van a aparecer en la página en unos minutos. Podés ordenarlas en la sección Álbumes.", "good");
     }).catch(function(e){
       say(st, e.message || "No se pudo publicar. Probá de nuevo.", "err");
     }).then(function(){ busy = false; refreshBar(); });
