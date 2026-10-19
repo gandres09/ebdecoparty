@@ -101,6 +101,8 @@ footer h2{font-size:clamp(1.6rem,4vw,2.2rem)}
   .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:48px;align-items:start}
   .split h2{margin-bottom:10px}
 }
+.stick.off{opacity:0;pointer-events:none;transform:translateY(10px)}
+@media (prefers-reduced-motion:no-preference){.stick{transition:opacity .2s ease,transform .2s ease}}
 /* fixed whatsapp bar, phones only */
 .stick{display:none}
 @media (max-width:700px){
@@ -264,6 +266,16 @@ var BASE_MSG = "Hola! Quiero pedir presupuesto para decorar un cumpleaños.";
   gal.innerHTML = items.map(function(t){
     return '<figure class="tile" data-g="' + t.g + '">' + tile(t) + '<figcaption>' + t.n + '</figcaption></figure>';
   }).join("");
+
+  var foot = document.querySelector("footer"), stick = document.querySelector(".stick");
+  if(foot && stick && "IntersectionObserver" in window){
+    new IntersectionObserver(function(e){
+      var hide = e[0].isIntersecting;
+      stick.classList.toggle("off", hide);
+      stick.setAttribute("aria-hidden", hide ? "true" : "false");
+      stick.tabIndex = hide ? -1 : 0;
+    }).observe(foot);
+  }
 
   document.getElementById("filters").addEventListener("click", function(e){
     var b = e.target.closest(".fbtn"); if(!b) return;
