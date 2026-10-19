@@ -79,10 +79,10 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
 
   <section id="login">
     <h1>Entrá al panel</h1>
-    <p class="sub">Escribí la contraseña para subir o quitar fotos de la página.</p>
+    <p class="sub">Pegá la clave de acceso que te pasaron para subir o quitar fotos de la página. Solo hace falta la primera vez en cada teléfono.</p>
     <form id="loginForm" autocomplete="on">
-      <label class="t" for="pw">Contraseña</label>
-      <input type="password" id="pw" autocomplete="current-password" required>
+      <label class="t" for="pw">Clave de acceso</label>
+      <input type="password" id="pw" autocomplete="off" autocapitalize="off" spellcheck="false" required>
       <div class="bar"><button class="btn" type="submit" id="enter">Entrar</button></div>
       <p class="msg" id="loginMsg" role="alert"></p>
     </form>
@@ -113,22 +113,98 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
 
 <script>
 (function(){
-  var API = "/.netlify/functions/admin";
+  var REPO = "gandres09/ebdecoparty", BRANCH = "main", MAX_TEMAS = 12, MAX_ITEMS = 30;
   var BASE_TEMAS = ["Fútbol","Personajes","Colores"];
   var NEW = "__nuevo__";
   var pass = "", pending = [], current = [], busy = false;
   var $ = function(id){ return document.getElementById(id); };
 
-  function store(v){ try{ if(v) localStorage.setItem("eb-pass", v); else localStorage.removeItem("eb-pass"); }catch(e){} }
-  function saved(){ try{ return localStorage.getItem("eb-pass") || ""; }catch(e){ return ""; } }
+  function store(v){ try{ if(v) localStorage.setItem("eb-clave", v); else localStorage.removeItem("eb-clave"); }catch(e){} }
+  function saved(){ try{ return localStorage.getItem("eb-clave") || ""; }catch(e){ return ""; } }
 
+  /* Habla directo con GitHub usando la clave de acceso (un token del repositorio). */
+  function gh(path, method, payload){
+    return fetch("https://api.github.com/repos/" + REPO + path, {
+      method: method || "GET",
+      headers: {Authorization:"Bearer " + pass, Accept:"application/vnd.github+json", "X-GitHub-Api-Version":"2022-11-28", "Content-Type":"application/json"},
+      body: payload ? JSON.stringify(payload) : undefined
+    }).catch(function(){ var e = new Error("No hay conexión. Probá de nuevo."); e.status = 0; throw e; })
+    .then(function(r){ return r.text().then(function(t){
+      var d = null; try{ d = t ? JSON.parse(t) : null; }catch(x){}
+      if(!r.ok){ var e = new Error(friendly(r.status)); e.status = r.status; throw e; }
+      return d;
+    }); });
+  }
+  function friendly(st){
+    if(st === 401) return "La clave no es correcta o venció.";
+    if(st === 403) return "Esta clave no tiene permiso para guardar fotos. Pedí una nueva.";
+    if(st === 404) return "No encuentro el repositorio. Revisá que la clave sea la correcta.";
+    if(st === 409 || st === 422) return "Se hizo otro cambio al mismo tiempo. Probá de nuevo.";
+    return "No se pudo completar. Probá de nuevo en un momento.";
+  }
+  function readList(){
+    return gh("/contents/fotos.json?ref=" + BRANCH).then(function(f){
+      var list = JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, "")))));
+      return Array.isArray(list) ? list : [];
+    }, function(e){ if(e.status === 404) return []; throw e; });
+  }
+  function cleanTitle(t){ return String(t || "").replace(/[\u0000-\u001f<>"]/g, "").trim().slice(0, 60); }
+  function cleanTema(t){
+    var x = String(t || "").replace(/[\u0000-\u001f<>"&]/g, "").replace(/\s+/g, " ").trim().slice(0, 30);
+    return x.charAt(0).toUpperCase() + x.slice(1);
+  }
+  function normTema(t){ return String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+  function rid(){ var a = new Uint8Array(3); crypto.getRandomValues(a); return Date.now().toString(36) + "-" + Array.prototype.map.call(a, function(x){ return ("0" + x.toString(16)).slice(-2); }).join(""); }
+
+  function publish(add, remove){
+    if(!add.length && !remove.length) return Promise.reject(new Error("No hay cambios para publicar"));
+    if(add.length > MAX_ITEMS || remove.length > MAX_ITEMS) return Promise.reject(new Error("Son demasiadas fotos juntas"));
+    for(var i = 0; i < add.length; i++){
+      if(!/^[0-9a-f]{40}$/.test(add[i].sha || "") || !cleanTema(add[i].tema)) return Promise.reject(new Error("Hay una foto sin tema"));
+    }
+    var headSha, treeSha, next;
+    return gh("/git/ref/heads/" + BRANCH).then(function(ref){
+      headSha = ref.object.sha; return gh("/git/commits/" + headSha);
+    }).then(function(commit){ treeSha = commit.tree.sha; return readList(); })
+    .then(function(list){
+      next = list; var entries = [];
+      remove.forEach(function(file){
+        if(typeof file !== "string" || !/^fotos\/[a-z0-9-]+\.jpg$/.test(file)) return;
+        if(!next.some(function(f){ return f.file === file; })) return;
+        next = next.filter(function(f){ return f.file !== file; });
+        entries.push({path:file, mode:"100644", type:"blob", sha:null});
+      });
+      var known = {};
+      next.forEach(function(f){ if(f.tema && !known[normTema(f.tema)]) known[normTema(f.tema)] = f.tema; });
+      var created = [];
+      add.forEach(function(a){
+        var label = cleanTema(a.tema), key = normTema(label);
+        if(!known[key]) known[key] = label;
+        var file = "fotos/" + rid() + ".jpg";
+        entries.push({path:file, mode:"100644", type:"blob", sha:a.sha});
+        created.push({file:file, tema:known[key], titulo:cleanTitle(a.titulo)});
+      });
+      next = created.concat(next);
+      var used = {}; next.forEach(function(f){ if(f.tema) used[normTema(f.tema)] = 1; });
+      if(Object.keys(used).length > MAX_TEMAS) throw new Error("Son demasiados temas distintos (máximo " + MAX_TEMAS + "). Usá uno que ya exista.");
+      entries.push({path:"fotos.json", mode:"100644", type:"blob", content:JSON.stringify(next, null, 2) + "\n"});
+      return gh("/git/trees", "POST", {base_tree:treeSha, tree:entries});
+    }).then(function(tree){
+      return gh("/git/commits", "POST", {message:"Actualiza las fotos desde el panel [skip netlify]", tree:tree.sha, parents:[headSha]});
+    }).then(function(made){
+      return gh("/git/refs/heads/" + BRANCH, "PATCH", {sha:made.sha});
+    }).then(function(){ return {ok:true, fotos:next}; });
+  }
+
+  /* Misma interfaz que usa el resto del panel */
   function call(body){
-    body.password = pass;
-    return fetch(API, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)})
-      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){
-        if(!r.ok){ var e = new Error(j.error || ("Error " + r.status)); e.status = r.status; throw e; }
-        return j;
-      }); });
+    switch(body.action){
+      case "check": return gh("").then(function(){ return {ok:true}; });
+      case "list": return readList().then(function(l){ return {fotos:l}; });
+      case "blob": return gh("/git/blobs", "POST", {content:body.data, encoding:"base64"}).then(function(b){ return {sha:b.sha}; });
+      case "publish": return publish(body.add || [], body.remove || []);
+    }
+    return Promise.reject(new Error("Acción desconocida"));
   }
   function say(el, text, kind){ el.textContent = text; el.className = "msg " + (kind || ""); }
 
@@ -142,7 +218,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
     }).catch(function(e){
       pass = "";
       if(fromSaved){ store(""); return; }
-      say($("loginMsg"), e.status === 401 ? "La contraseña no es correcta." : (e.message || "No se pudo entrar."), "err");
+      say($("loginMsg"), e.status === 401 ? "La clave no es correcta o venció." : (e.message || "No se pudo entrar."), "err");
     });
   }
   $("loginForm").addEventListener("submit", function(ev){
@@ -174,7 +250,7 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
     $("emptyNote").hidden = current.length > 0;
     current.forEach(function(f){
       var card = document.createElement("div"); card.className = "card";
-      var img = document.createElement("img"); img.alt = ""; img.src = "/" + f.file;
+      var img = document.createElement("img"); img.alt = ""; img.src = "../" + f.file;
       img.onerror = function(){ var ph = document.createElement("div"); ph.className = "ph"; ph.textContent = "Publicándose…"; img.replaceWith(ph); };
       var body = document.createElement("div"); body.className = "body";
       var name = document.createElement("div"); name.className = "name"; name.textContent = f.titulo || "Sin nombre";
