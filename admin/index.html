@@ -39,6 +39,8 @@ section:first-of-type{border-top:0}
 .btn:hover{filter:brightness(1.08)}
 .btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
 .btn.line{background:transparent;color:var(--fg);border:2px solid var(--fg)}
+.nav{display:flex;align-items:center;gap:16px}
+a.txt{display:inline-flex;align-items:center}
 .txt{background:none;border:0;padding:8px 4px;min-height:44px;font:inherit;font-weight:700;color:var(--fg);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:4px;cursor:pointer}
 .txt.bad{color:var(--bad)}
 
@@ -74,7 +76,8 @@ input[type=password],input[type=text],select{width:100%;min-height:48px;padding:
       </svg>
       Panel de fotos
     </div>
-    <button class="txt" id="logout" type="button" hidden>Salir</button>
+    <div class="nav"><a class="txt" href="../">Ver la página</a>
+    <button class="txt" id="logout" type="button" hidden>Salir</button></div>
   </header>
 
   <section id="login">
