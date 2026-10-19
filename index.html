@@ -58,6 +58,7 @@ a{color:inherit}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;align-items:start}
 .tile{margin:0}
 .tile svg{display:block;width:100%;height:auto;border-radius:6px}
+.tile img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:6px;background:var(--panel)}
 .tile figcaption{padding-top:4px;font-size:.88rem;color:var(--muted)}
 .tile[hidden]{display:none}
 .more{margin:18px 0 0}
@@ -262,10 +263,30 @@ var BASE_MSG = "Hola! Quiero pedir presupuesto para decorar un cumpleaños.";
     });
     return s + '</svg>';
   }
-  var gal = document.getElementById("gal");
-  gal.innerHTML = items.map(function(t){
-    return '<figure class="tile" data-g="' + t.g + '">' + tile(t) + '<figcaption>' + t.n + '</figcaption></figure>';
-  }).join("");
+  var gal = document.getElementById("gal"), filters = document.getElementById("filters");
+  function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function showSamples(){
+    gal.innerHTML = items.map(function(t){
+      return '<figure class="tile" data-g="' + t.g + '">' + tile(t) + '<figcaption>' + t.n + '</figcaption></figure>';
+    }).join("");
+  }
+  function showPhotos(list){
+    var temas = [], seen = {};
+    list.forEach(function(f){ var k = String(f.tema || ""); if(k && !seen[k]){ seen[k] = 1; temas.push(k); } });
+    gal.innerHTML = list.map(function(f){
+      return '<figure class="tile" data-g="' + esc(f.tema || "") + '"><img src="' + esc(f.file) + '" alt="' + esc(f.titulo || "Decoración de cumpleaños") + '" loading="lazy">' +
+        (f.titulo ? '<figcaption>' + esc(f.titulo) + '</figcaption>' : '') + '</figure>';
+    }).join("");
+    filters.innerHTML = '<button class="fbtn" type="button" data-f="todos" aria-pressed="true">Todos</button>' +
+      temas.map(function(t){ return '<button class="fbtn" type="button" data-f="' + esc(t) + '" aria-pressed="false">' + esc(t) + '</button>'; }).join("");
+    filters.hidden = temas.length < 2;
+  }
+  if(window.fetch){
+    fetch("fotos.json", {cache:"no-store"})
+      .then(function(r){ return r.ok ? r.json() : []; })
+      .then(function(list){ if(Array.isArray(list) && list.length) showPhotos(list); else showSamples(); })
+      .catch(showSamples);
+  } else { showSamples(); }
 
   var foot = document.querySelector("footer"), stick = document.querySelector(".stick");
   if(foot && stick && "IntersectionObserver" in window){
@@ -277,7 +298,7 @@ var BASE_MSG = "Hola! Quiero pedir presupuesto para decorar un cumpleaños.";
     }).observe(foot);
   }
 
-  document.getElementById("filters").addEventListener("click", function(e){
+  filters.addEventListener("click", function(e){
     var b = e.target.closest(".fbtn"); if(!b) return;
     var f = b.getAttribute("data-f");
     this.querySelectorAll(".fbtn").forEach(function(x){ x.setAttribute("aria-pressed", x === b ? "true" : "false"); });

@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel de EB Decoparty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+<style>
+/* Layout: single column, big touch targets, one job per section. Same palette as the public page. */
+:root{
+  --bg:#FAF7F1; --fg:#1F1B15; --muted:#5F584B; --line:#DDD5C4; --panel:#EFE9DB; --card:#FFFFFF;
+  --accent:#A86A00; --ok:#14803B; --ok-fg:#FFFFFF; --warn:#9A4B00; --bad:#B3261E;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#171410; --fg:#F4EEE2; --muted:#BDB4A1; --line:#352F26; --panel:#221E18; --card:#1E1A14; --accent:#E3B04B; --ok:#2BA85A; --ok-fg:#0B1A10; --warn:#E8A45C; --bad:#FF8A80; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+.wrap{max-width:720px;margin:0 auto}
+h1,h2{font-family:var(--display);font-weight:700;line-height:1.1;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(1.8rem,6vw,2.4rem)}
+h2{font-size:1.5rem}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+[hidden]{display:none!important}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:1.1rem}
+.brand svg{width:38px;height:38px;flex:none}
+.sub{color:var(--muted);margin:8px 0 22px;max-width:50ch}
+section{padding-block:28px;border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:13px 26px;border-radius:10px;border:0;background:var(--ok);color:var(--ok-fg);font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.btn.line{background:transparent;color:var(--fg);border:2px solid var(--fg)}
+.txt{background:none;border:0;padding:8px 4px;min-height:44px;font:inherit;font-weight:700;color:var(--fg);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:4px;cursor:pointer}
+.txt.bad{color:var(--bad)}
+
+label.t{display:block;font-weight:700;margin-bottom:6px}
+input[type=password],input[type=text],select{width:100%;min-height:48px;padding:10px 14px;border-radius:8px;border:1.5px solid var(--line);background:var(--panel);color:var(--fg);font:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0}
+.pick:focus-within{outline:3px solid var(--accent);outline-offset:3px}
+
+.msg{margin:12px 0 0;font-weight:600}
+.msg.err{color:var(--bad)}
+.msg.good{color:var(--ok)}
+.msg.info{color:var(--muted)}
+
+.cards{display:grid;gap:16px;margin-top:18px}
+.card{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);align-items:start}
+.card img,.card .ph{width:96px;height:120px;object-fit:cover;border-radius:8px;background:var(--panel);display:block}
+.card .ph{display:grid;place-items:center;text-align:center;font-size:.8rem;color:var(--muted);padding:6px}
+.card .body{display:grid;gap:10px;min-width:0}
+.card .name{font-weight:700;word-break:break-word}
+.card .tag{color:var(--muted);font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 100 100" role="img" aria-label="Logo EB Decoparty">
+        <circle cx="50" cy="50" r="48" fill="#111"/><circle cx="50" cy="50" r="42" fill="none" stroke="#D9AE4B" stroke-width="1.5"/>
+        <text x="50" y="58" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="700" font-size="32" fill="#D9AE4B">EB</text>
+        <text x="50" y="74" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="500" font-size="11" fill="#D9AE4B">Decoparty</text>
+      </svg>
+      Panel de fotos
+    </div>
+    <button class="txt" id="logout" type="button" hidden>Salir</button>
+  </header>
+
+  <section id="login">
+    <h1>Entrá al panel</h1>
+    <p class="sub">Escribí la contraseña para subir o quitar fotos de la página.</p>
+    <form id="loginForm" autocomplete="on">
+      <label class="t" for="pw">Contraseña</label>
+      <input type="password" id="pw" autocomplete="current-password" required>
+      <div class="bar"><button class="btn" type="submit" id="enter">Entrar</button></div>
+      <p class="msg" id="loginMsg" role="alert"></p>
+    </form>
+  </section>
+
+  <main id="panel" hidden>
+    <section>
+      <h1>Subir fotos</h1>
+      <p class="sub">Elegí las fotos de tus trabajos, indicá el tema de cada una y tocá Publicar.</p>
+      <label class="btn line pick" for="files">Elegir fotos del teléfono</label>
+      <input class="sr" type="file" id="files" accept="image/*" multiple>
+      <p class="msg info" id="prep" hidden></p>
+      <div class="cards" id="pending"></div>
+      <div class="bar" id="pubbar" hidden>
+        <button class="btn" type="button" id="publish">Publicar</button>
+        <span class="msg" id="status" role="status" style="margin:0"></span>
+      </div>
+      <p class="msg" id="done" role="status" hidden></p>
+    </section>
+
+    <section>
+      <h2>Fotos publicadas</h2>
+      <p class="sub" id="emptyNote" hidden>Todavía no hay fotos propias. La página muestra dibujos de ejemplo hasta que subas la primera.</p>
+      <div class="cards" id="current"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+  var API = "/.netlify/functions/admin";
+  var BASE_TEMAS = ["Fútbol","Personajes","Colores"];
+  var NEW = "__nuevo__";
+  var pass = "", pending = [], current = [], busy = false;
+  var $ = function(id){ return document.getElementById(id); };
+
+  function store(v){ try{ if(v) localStorage.setItem("eb-pass", v); else localStorage.removeItem("eb-pass"); }catch(e){} }
+  function saved(){ try{ return localStorage.getItem("eb-pass") || ""; }catch(e){ return ""; } }
+
+  function call(body){
+    body.password = pass;
+    return fetch(API, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)})
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){
+        if(!r.ok){ var e = new Error(j.error || ("Error " + r.status)); e.status = r.status; throw e; }
+        return j;
+      }); });
+  }
+  function say(el, text, kind){ el.textContent = text; el.className = "msg " + (kind || ""); }
+
+  /* login */
+  function enter(p, fromSaved){
+    pass = p;
+    return call({action:"check"}).then(function(){
+      store(p);
+      $("login").hidden = true; $("panel").hidden = false; $("logout").hidden = false;
+      return loadList();
+    }).catch(function(e){
+      pass = "";
+      if(fromSaved){ store(""); return; }
+      say($("loginMsg"), e.status === 401 ? "La contraseña no es correcta." : (e.message || "No se pudo entrar."), "err");
+    });
+  }
+  $("loginForm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var b = $("enter"); b.disabled = true; say($("loginMsg"), "Entrando…", "info");
+    enter($("pw").value, false).then(function(){ b.disabled = false; if(!$("panel").hidden) say($("loginMsg"), "", ""); });
+  });
+  $("logout").addEventListener("click", function(){
+    store(""); pass = ""; pending = []; renderPending();
+    $("panel").hidden = true; $("login").hidden = false; $("logout").hidden = true; $("pw").value = "";
+  });
+  var s = saved(); if(s) enter(s, true);
+
+  /* list of published photos */
+  function loadList(){
+    return call({action:"list"}).then(function(j){ current = j.fotos || []; renderCurrent(); })
+      .catch(function(e){ say($("done"), e.message, "err"); $("done").hidden = false; });
+  }
+  function temaList(){
+    var out = [], seen = {};
+    current.map(function(f){ return f.tema; }).concat(BASE_TEMAS).forEach(function(t){
+      var k = String(t || "").toLowerCase(); if(t && !seen[k]){ seen[k] = 1; out.push(t); }
+    });
+    return out;
+  }
+  function temaName(k){ return k; }
+  function renderCurrent(){
+    var box = $("current"); box.innerHTML = "";
+    $("emptyNote").hidden = current.length > 0;
+    current.forEach(function(f){
+      var card = document.createElement("div"); card.className = "card";
+      var img = document.createElement("img"); img.alt = ""; img.src = "/" + f.file;
+      img.onerror = function(){ var ph = document.createElement("div"); ph.className = "ph"; ph.textContent = "Publicándose…"; img.replaceWith(ph); };
+      var body = document.createElement("div"); body.className = "body";
+      var name = document.createElement("div"); name.className = "name"; name.textContent = f.titulo || "Sin nombre";
+      var tag = document.createElement("div"); tag.className = "tag"; tag.textContent = "Tema: " + temaName(f.tema);
+      var row = document.createElement("div"); row.className = "row";
+      var del = document.createElement("button"); del.type = "button"; del.className = "txt bad"; del.textContent = "Quitar";
+      del.addEventListener("click", function(){ askRemove(row, f); });
+      row.appendChild(del);
+      body.appendChild(name); body.appendChild(tag); body.appendChild(row);
+      card.appendChild(img); card.appendChild(body); box.appendChild(card);
+    });
+  }
+  function askRemove(row, f){
+    row.innerHTML = "";
+    var q = document.createElement("span"); q.textContent = "¿Quitar esta foto?"; q.style.fontWeight = "700";
+    var yes = document.createElement("button"); yes.type = "button"; yes.className = "txt bad"; yes.textContent = "Sí, quitar";
+    var no = document.createElement("button"); no.type = "button"; no.className = "txt"; no.textContent = "No";
+    no.addEventListener("click", renderCurrent);
+    yes.addEventListener("click", function(){
+      yes.disabled = true; q.textContent = "Quitando…";
+      call({action:"publish", add:[], remove:[f.file]}).then(function(j){
+        current = j.fotos || []; renderCurrent();
+        say($("done"), "Listo. La foto se va a sacar de la página en uno o dos minutos.", "good"); $("done").hidden = false;
+      }).catch(function(e){ say($("done"), e.message, "err"); $("done").hidden = false; renderCurrent(); });
+    });
+    row.appendChild(q); row.appendChild(yes); row.appendChild(no);
+  }
+
+  /* choosing and preparing photos */
+  function shrink(file){
+    return (window.createImageBitmap ? createImageBitmap(file, {imageOrientation:"from-image"}) : Promise.reject())
+      .catch(function(){ return new Promise(function(res, rej){ var i = new Image(); i.onload = function(){ res(i); }; i.onerror = rej; i.src = URL.createObjectURL(file); }); })
+      .then(function(bmp){
+        var w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight;
+        var k = Math.min(1, 1400 / Math.max(w, h));
+        var c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+        c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+        return new Promise(function(res){ c.toBlob(res, "image/jpeg", 0.82); });
+      }).then(function(blob){
+        return new Promise(function(res){
+          var fr = new FileReader();
+          fr.onload = function(){ res({url:URL.createObjectURL(blob), b64:String(fr.result).split(",")[1]}); };
+          fr.readAsDataURL(blob);
+        });
+      });
+  }
+  $("files").addEventListener("change", function(){
+    var files = Array.prototype.slice.call(this.files || []); this.value = "";
+    if(!files.length) return;
+    $("done").hidden = true;
+    var p = $("prep"); p.hidden = false; say(p, "Preparando fotos…", "info");
+    var bad = 0;
+    files.reduce(function(chain, f){
+      return chain.then(function(){ return shrink(f).then(function(r){ pending.push({url:r.url, b64:r.b64, tema:"", titulo:""}); }).catch(function(){ bad++; }); });
+    }, Promise.resolve()).then(function(){
+      if(bad) say(p, "No pude leer " + bad + (bad === 1 ? " foto." : " fotos."), "err"); else p.hidden = true;
+      renderPending();
+    });
+  });
+
+  function renderPending(){
+    var box = $("pending"); box.innerHTML = "";
+    pending.forEach(function(it, idx){
+      var card = document.createElement("div"); card.className = "card";
+      var img = document.createElement("img"); img.alt = "Foto " + (idx + 1); img.src = it.url;
+      var body = document.createElement("div"); body.className = "body";
+      var lt = document.createElement("label"); lt.className = "t"; lt.textContent = "Tema (la pestaña donde va a aparecer)"; lt.htmlFor = "tema" + idx;
+      var sel = document.createElement("select"); sel.id = "tema" + idx;
+      var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Elegí el tema"; sel.appendChild(o0);
+      temaList().forEach(function(t){ var o = document.createElement("option"); o.value = t; o.textContent = t; sel.appendChild(o); });
+      var oN = document.createElement("option"); oN.value = NEW; oN.textContent = "Otro tema nuevo…"; sel.appendChild(oN);
+      var nw = document.createElement("input"); nw.type = "text"; nw.maxLength = 30; nw.placeholder = "Nombre del tema nuevo"; nw.setAttribute("aria-label", "Nombre del tema nuevo");
+      var isNew = it.nuevo || (it.tema && temaList().indexOf(it.tema) === -1);
+      if(isNew){ sel.value = NEW; nw.value = it.tema || ""; } else { sel.value = it.tema || ""; }
+      nw.hidden = !isNew;
+      sel.addEventListener("change", function(){
+        if(sel.value === NEW){ it.nuevo = true; it.tema = nw.value.trim(); nw.hidden = false; nw.focus(); }
+        else { it.nuevo = false; it.tema = sel.value; nw.hidden = true; }
+        refreshBar();
+      });
+      nw.addEventListener("input", function(){ it.tema = nw.value.trim(); refreshBar(); });
+      var ln = document.createElement("label"); ln.className = "t"; ln.textContent = "Nombre (opcional)"; ln.htmlFor = "nom" + idx;
+      var inp = document.createElement("input"); inp.type = "text"; inp.id = "nom" + idx; inp.maxLength = 60; inp.placeholder = "Ej: Selva, Boca, Pastel"; inp.value = it.titulo;
+      inp.addEventListener("input", function(){ it.titulo = inp.value; });
+      var rm = document.createElement("button"); rm.type = "button"; rm.className = "txt"; rm.textContent = "Sacar esta foto";
+      rm.addEventListener("click", function(){ pending.splice(idx, 1); renderPending(); });
+      body.appendChild(lt); body.appendChild(sel); body.appendChild(nw); body.appendChild(ln); body.appendChild(inp); body.appendChild(rm);
+      card.appendChild(img); card.appendChild(body); box.appendChild(card);
+    });
+    refreshBar();
+  }
+  function refreshBar(){
+    var n = pending.length, missing = pending.filter(function(x){ return !x.tema; }).length;
+    $("pubbar").hidden = n === 0;
+    var b = $("publish"); b.textContent = "Publicar " + n + (n === 1 ? " foto" : " fotos");
+    b.disabled = busy || missing > 0;
+    if(!busy) say($("status"), missing ? "Falta elegir el tema en " + missing + (missing === 1 ? " foto." : " fotos.") : "", "info");
+  }
+
+  /* publish: upload each photo, then one commit with all of them */
+  $("publish").addEventListener("click", function(){
+    if(busy || !pending.length) return;
+    busy = true; $("publish").disabled = true; $("done").hidden = true;
+    var st = $("status"), shas = [], list = pending.slice(), i = 0;
+    function next(){
+      if(i >= list.length) return Promise.resolve();
+      say(st, "Subiendo foto " + (i + 1) + " de " + list.length + "…", "info");
+      return call({action:"blob", data:list[i].b64}).then(function(j){ shas.push(j.sha); i++; return next(); });
+    }
+    next().then(function(){
+      say(st, "Publicando…", "info");
+      return call({action:"publish", add:list.map(function(it, k){ return {sha:shas[k], tema:it.tema, titulo:it.titulo}; }), remove:[]});
+    }).then(function(j){
+      pending = []; current = j.fotos || []; renderPending(); renderCurrent();
+      say($("done"), "Listo. Las fotos van a aparecer en la página en uno o dos minutos.", "good"); $("done").hidden = false;
+    }).catch(function(e){
+      say(st, e.message || "No se pudo publicar. Probá de nuevo.", "err");
+    }).then(function(){ busy = false; refreshBar(); });
+  });
+})();
+</script>
+</body>
+</html>
