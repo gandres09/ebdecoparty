@@ -14,14 +14,14 @@
 /* Layout: photos first (mosaic with theme filters), short services text, three-field quote form that opens WhatsApp, fixed WhatsApp bar on phones. */
 :root{
   --bg:#FAF7F1; --fg:#1F1B15; --muted:#5F584B; --line:#DDD5C4; --panel:#EFE9DB;
-  --accent:#A86A00; --wa:#14803B; --wa-fg:#FFFFFF;
+  --accent:#A86A00; --wa:#14803B; --wa-fg:#FFFFFF; --warn:#9A4B00;
   --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
   --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#171410; --fg:#F4EEE2; --muted:#BDB4A1; --line:#352F26; --panel:#221E18; --accent:#E3B04B; --wa:#2BA85A; --wa-fg:#0B1A10; color-scheme:dark}}
+  --bg:#171410; --fg:#F4EEE2; --muted:#BDB4A1; --line:#352F26; --panel:#221E18; --accent:#E3B04B; --wa:#2BA85A; --wa-fg:#0B1A10; --warn:#E8A45C; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#171410; --fg:#F4EEE2; --muted:#BDB4A1; --line:#352F26; --panel:#221E18; --accent:#E3B04B; --wa:#2BA85A; --wa-fg:#0B1A10; color-scheme:dark}
+  --bg:#171410; --fg:#F4EEE2; --muted:#BDB4A1; --line:#352F26; --panel:#221E18; --accent:#E3B04B; --wa:#2BA85A; --wa-fg:#0B1A10; --warn:#E8A45C; color-scheme:dark}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -83,6 +83,7 @@ h2{font-size:clamp(1.7rem,4.5vw,2.4rem);margin-bottom:8px}
 .opts span{display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);font-weight:600;font-size:.97rem}
 .opts input:checked + span{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .opts input:focus-visible + span{outline:3px solid var(--accent);outline-offset:3px}
+.hint{display:block;min-height:0;margin-top:6px;color:var(--warn);font-weight:600;font-size:.92rem}
 .prev{margin:0;padding:12px 14px;border-left:3px solid var(--accent);background:var(--panel);color:var(--muted);font-size:.95rem;border-radius:0 8px 8px 0}
 .prev b{display:block;color:var(--fg);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
 
@@ -162,6 +163,7 @@ footer h2{font-size:clamp(1.6rem,4vw,2.2rem)}
       <div>
         <label class="t" for="f-fecha">Fecha</label>
         <input type="date" id="f-fecha">
+        <small class="hint" id="f-hint" aria-live="polite"></small>
       </div>
       <div>
         <label class="t" for="f-tema">Tema</label>
@@ -206,10 +208,14 @@ var BASE_MSG = "Hola! Quiero pedir presupuesto para decorar un cumpleaños.";
   /* form -> message */
   var fecha = document.getElementById("f-fecha"), tema = document.getElementById("f-tema");
   var prev = document.getElementById("prev"), send = document.getElementById("send");
+  var hint = document.getElementById("f-hint");
+  (function(){ var d = new Date(); fecha.min = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); })();
   function fmtDate(v){ var p = v.split("-"); return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : v; }
   function build(){
     var parts = [BASE_MSG];
-    if(fecha.value) parts.push("Fecha: " + fmtDate(fecha.value) + ".");
+    var past = fecha.value && fecha.value < fecha.min;
+    hint.textContent = past ? "Elegí una fecha desde hoy." : "";
+    if(fecha.value && !past) parts.push("Fecha: " + fmtDate(fecha.value) + ".");
     if(tema.value.trim()) parts.push("Tema: " + tema.value.trim() + ".");
     var r = document.querySelector('input[name="pres"]:checked');
     if(r) parts.push("Presupuesto: " + r.value + ".");
