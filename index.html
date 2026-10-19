@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EB Decoparty</title>
+<meta name="description" content="Decoración de cumpleaños: globos, fondos con tema, mesa dulce y números con luz. Pedí tu presupuesto por WhatsApp.">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+<style>
+/* Layout: photos first (mosaic with theme filters), short services text, three-field quote form that opens WhatsApp, fixed WhatsApp bar on phones. */
+:root{
+  --bg:#FAF7F1; --fg:#1F1B15; --muted:#5F584B; --line:#DDD5C4; --panel:#EFE9DB;
+  --accent:#A86A00; --wa:#14803B; --wa-fg:#FFFFFF;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#171410; --fg:#F4EEE2; --muted:#BDB4A1; --line:#352F26; --panel:#221E18; --accent:#E3B04B; --wa:#2BA85A; --wa-fg:#0B1A10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171410; --fg:#F4EEE2; --muted:#BDB4A1; --line:#352F26; --panel:#221E18; --accent:#E3B04B; --wa:#2BA85A; --wa-fg:#0B1A10; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+.wrap{max-width:960px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.01em}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:1.15rem;text-decoration:none}
+.brand svg{width:40px;height:40px;flex:none}
+.top nav{display:flex;align-items:center;gap:18px;font-weight:600;font-size:.97rem}
+.top nav a{text-decoration:none;color:var(--muted)}
+.top nav a:hover{color:var(--fg);text-decoration:underline;text-underline-offset:4px}
+.top nav a.wa{color:var(--wa-fg)}
+.btn{display:inline-block;padding:13px 24px;border-radius:8px;background:var(--wa);color:var(--wa-fg);font-weight:700;text-decoration:none;min-height:48px;border:0;font:inherit;font-weight:700;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn.sm{padding:8px 16px;min-height:0;border-radius:999px;font-size:.92rem}
+.ig{display:inline-flex;align-items:center;gap:6px}
+.igi{width:1.1em;height:1.1em;flex:none}
+.link{font-weight:700;text-underline-offset:4px;text-decoration-thickness:2px;text-decoration-color:var(--accent)}
+
+/* hero + gallery */
+.hero{padding-block:24px 8px}
+.hero h1{font-size:clamp(2.2rem,6.5vw,3.8rem);max-width:17ch}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{font-size:1.12rem;color:var(--muted);max-width:44ch;margin:14px 0 22px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.fbtn{font:inherit;font-weight:600;font-size:.95rem;padding:7px 16px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;min-height:40px}
+.fbtn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;align-items:start}
+.tile{margin:0}
+.tile svg{display:block;width:100%;height:auto;border-radius:6px}
+.tile figcaption{padding-top:4px;font-size:.88rem;color:var(--muted)}
+.tile[hidden]{display:none}
+.more{margin:18px 0 0}
+
+section{padding-block:56px;border-bottom:1px solid var(--line)}
+h2{font-size:clamp(1.7rem,4.5vw,2.4rem);margin-bottom:8px}
+.sub{color:var(--muted);margin:0 0 24px;max-width:48ch}
+.how{max-width:58ch}
+.how p{margin:0 0 14px}
+.how p:last-child{margin:0}
+
+/* quote form */
+.q{display:grid;gap:18px;max-width:520px}
+.q label.t,.q .t{display:block;font-weight:700;margin-bottom:6px}
+.q input[type=date],.q input[type=text]{width:100%;font:inherit;padding:12px 14px;border-radius:8px;border:1.5px solid var(--line);background:var(--panel);color:var(--fg);min-height:48px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts label{position:relative}
+.opts input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.opts span{display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);font-weight:600;font-size:.97rem}
+.opts input:checked + span{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.opts input:focus-visible + span{outline:3px solid var(--accent);outline-offset:3px}
+.prev{margin:0;padding:12px 14px;border-left:3px solid var(--accent);background:var(--panel);color:var(--muted);font-size:.95rem;border-radius:0 8px 8px 0}
+.prev b{display:block;color:var(--fg);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+
+footer{padding-block:40px 28px}
+footer h2{font-size:clamp(1.6rem,4vw,2.2rem)}
+.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px 24px;justify-content:space-between;color:var(--muted);font-size:.92rem}
+.btns{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;margin-top:16px}
+
+/* desktop */
+@media (min-width:900px){
+  .wrap{max-width:1080px}
+  .hero{padding-block:40px 8px}
+  .hero h1{max-width:20ch;font-size:clamp(3rem,5vw,4.2rem)}
+  .gal{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+  .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:48px;align-items:start}
+  .split h2{margin-bottom:10px}
+}
+/* fixed whatsapp bar, phones only */
+.stick{display:none}
+@media (max-width:700px){
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  .top nav a:not(.wa){display:none}
+  .stick{display:block;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--wa);color:var(--wa-fg);text-align:center;font-weight:700;text-decoration:none;
+    padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+  section{padding-block:44px}
+  .gal{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 100 100" role="img" aria-label="Logo EB Decoparty">
+        <circle cx="50" cy="50" r="48" fill="#111"/><circle cx="50" cy="50" r="42" fill="none" stroke="#D9AE4B" stroke-width="1.5"/>
+        <text x="50" y="58" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="700" font-size="32" fill="#D9AE4B">EB</text>
+        <text x="50" y="74" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="500" font-size="11" fill="#D9AE4B">Decoparty</text>
+      </svg>
+      EB Decoparty
+    </a>
+    <nav>
+      <a href="#trabajos">Trabajos</a>
+      <a href="#servicios">Servicios</a>
+      <a href="#cotizar">Cotizar</a>
+      <a class="btn sm wa js-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+    </nav>
+  </div>
+
+  <header class="hero" id="trabajos">
+    <h1>Decoramos tu <em>cumpleaños</em>, vos solo disfrutás</h1>
+    <p>Globos, fondos con el personaje que elija el cumpleañero, mesa dulce, números con luz.</p>
+    <div class="filters" id="filters" role="group" aria-label="Filtrar trabajos por tema">
+      <button class="fbtn" type="button" data-f="todos" aria-pressed="true">Todos</button>
+      <button class="fbtn" type="button" data-f="futbol" aria-pressed="false">Fútbol</button>
+      <button class="fbtn" type="button" data-f="personajes" aria-pressed="false">Personajes</button>
+      <button class="fbtn" type="button" data-f="colores" aria-pressed="false">Colores</button>
+    </div>
+    <div class="gal" id="gal"></div>
+    <p class="more">Más fotos en <a class="link ig" href="https://www.instagram.com/eb_decoparty" target="_blank" rel="noopener"><svg class="igi" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.3" fill="currentColor"/></svg>@eb_decoparty</a></p>
+  </header>
+
+  <section id="servicios" class="split">
+    <h2>Qué hacemos</h2>
+    <div class="how">
+      <p>Armamos la decoración completa para tu fiesta. Hacemos arcos de globos en los colores que elijas, fondos con el personaje, el equipo o el tema favorito del cumpleañero, y una mesa dulce con cilindros y pedestales para la torta.</p>
+      <p>Sumamos números y letras grandes, con luz o rellenos de globos. Vos elegís el tema, nosotros llevamos todo armado.</p>
+    </div>
+  </section>
+
+  <section id="cotizar" class="split">
+    <div>
+      <h2>Contanos tu fiesta</h2>
+      <p class="sub">Completá estos datos. Se abre WhatsApp con el mensaje escrito, solo falta enviarlo.</p>
+    </div>
+    <div class="q">
+      <div>
+        <label class="t" for="f-fecha">Fecha</label>
+        <input type="date" id="f-fecha">
+      </div>
+      <div>
+        <label class="t" for="f-tema">Tema</label>
+        <input type="text" id="f-tema" list="temas" placeholder="Fútbol, selva, princesas…" autocomplete="off">
+        <datalist id="temas"><option value="Fútbol"><option value="Selva"><option value="Autos"><option value="Princesas"><option value="Colores pastel"></datalist>
+      </div>
+      <div>
+        <span class="t" id="f-pres-t">Presupuesto aproximado</span>
+        <div class="opts" role="radiogroup" aria-labelledby="f-pres-t">
+          <label><input type="radio" name="pres" value="Algo simple"><span>Algo simple</span></label>
+          <label><input type="radio" name="pres" value="Intermedio"><span>Intermedio</span></label>
+          <label><input type="radio" name="pres" value="Completo"><span>Completo</span></label>
+          <label><input type="radio" name="pres" value="Todavía no sé"><span>Todavía no sé</span></label>
+        </div>
+      </div>
+      <p class="prev" aria-live="polite"><b>Mensaje</b><span id="prev"></span></p>
+      <div><a class="btn js-wa-form" id="send" href="#" target="_blank" rel="noopener">Enviar por WhatsApp</a></div>
+    </div>
+  </section>
+
+  <footer>
+    <h2>¿Para cuándo es la fiesta?</h2>
+    <div class="btns">
+      <a class="btn js-wa" href="#" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+      <a class="link ig" href="https://www.instagram.com/eb_decoparty" target="_blank" rel="noopener"><svg class="igi" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.3" fill="currentColor"/></svg>@eb_decoparty</a>
+    </div>
+    <div class="foot"><span>Colosenses 3:23</span><span>EB Decoparty · Decoración de eventos</span></div>
+  </footer>
+</div>
+
+<a class="stick js-wa" href="#" target="_blank" rel="noopener">Pedir presupuesto por WhatsApp</a>
+
+<script>
+/* Cargá el número de WhatsApp con código de país y sin signos, por ejemplo "59899123456". */
+var WA_NUMBER = "59891250586";
+var BASE_MSG = "Hola! Quiero pedir presupuesto para decorar un cumpleaños.";
+(function(){
+  var base = WA_NUMBER ? "https://wa.me/" + WA_NUMBER : "https://wa.me/";
+  function link(msg){ return base + "?text=" + encodeURIComponent(msg); }
+  document.querySelectorAll(".js-wa").forEach(function(a){ a.href = link(BASE_MSG); });
+
+  /* form -> message */
+  var fecha = document.getElementById("f-fecha"), tema = document.getElementById("f-tema");
+  var prev = document.getElementById("prev"), send = document.getElementById("send");
+  function fmtDate(v){ var p = v.split("-"); return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : v; }
+  function build(){
+    var parts = [BASE_MSG];
+    if(fecha.value) parts.push("Fecha: " + fmtDate(fecha.value) + ".");
+    if(tema.value.trim()) parts.push("Tema: " + tema.value.trim() + ".");
+    var r = document.querySelector('input[name="pres"]:checked');
+    if(r) parts.push("Presupuesto: " + r.value + ".");
+    var msg = parts.join(" ");
+    prev.textContent = msg;
+    send.href = link(msg);
+  }
+  ["input","change"].forEach(function(ev){ document.querySelector(".q").addEventListener(ev, build); });
+  build();
+
+  /* gallery: sample tiles until real photos arrive */
+  var items = [
+    {n:"Fútbol, rojo y azul", g:"futbol", c:["#E03A3E","#2756B8","#E03A3E","#2756B8","#F6C945"], bg:"#2B4A9A", h:1},
+    {n:"Selva", g:"personajes", c:["#F2B632","#F6E2A8","#FFFFFF","#C99A66"], bg:"#E9C98B", h:0},
+    {n:"Pastel", g:"colores", c:["#F6B5CB","#CDB7EE","#F8E48F","#AEDDF4","#F6B5CB"], bg:"#F3CDDA", h:0},
+    {n:"Negro y amarillo", g:"futbol", c:["#1A1A1A","#F6C61F","#1A1A1A","#F6C61F","#4A4A4A"], bg:"#2A2A2A", h:1},
+    {n:"Autos", g:"personajes", c:["#2A63C9","#F0701F","#1D4596","#F7A040","#2A63C9"], bg:"#F0A56A", h:1},
+    {n:"Verde y dorado", g:"colores", c:["#1F6B5E","#38A08E","#D8B658","#A6D4C9","#164A41"], bg:"#2F7F70", h:0},
+    {n:"Princesas", g:"personajes", c:["#F29BC0","#B58CE8","#FFFFFF","#F8D77A"], bg:"#F1C3DC", h:1},
+    {n:"Azul y dorado", g:"colores", c:["#1E3F9E","#D8B658","#1E3F9E","#9FB8F0","#D8B658"], bg:"#2A4FB5", h:0}
+  ];
+  var seed = 11;
+  function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+  function tile(t){
+    var H = 375, s = '<svg viewBox="0 0 300 ' + H + '" aria-hidden="true">';
+    s += '<rect width="300" height="' + H + '" fill="' + t.bg + '" opacity=".3"/>';
+    var cy = 165;
+    s += '<circle cx="150" cy="' + cy + '" r="82" fill="' + t.bg + '"/>';
+    s += '<circle cx="150" cy="' + cy + '" r="82" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="3"/>';
+    var n = 15, i, a, x, y, r, c;
+    for(i=0;i<n;i++){
+      a = Math.PI * (1.12 - 1.24 * i / (n-1));
+      x = 150 + 108 * Math.cos(a); y = cy + 40 - 112 * Math.sin(a);
+      r = 17 + rnd() * 12; c = t.c[Math.floor(rnd() * t.c.length)];
+      s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + c + '"/>';
+      s += '<circle cx="' + (x - r*.3).toFixed(1) + '" cy="' + (y - r*.35).toFixed(1) + '" r="' + (r*.25).toFixed(1) + '" fill="#fff" opacity=".4"/>';
+    }
+    var base = H - 36;
+    s += '<rect x="48" y="' + base + '" width="204" height="10" rx="3" fill="#000" opacity=".15"/>';
+    [[70,60,60],[150,50,50],[225,56,56]].forEach(function(p,k){
+      s += '<rect x="' + (p[0]-p[1]/2) + '" y="' + (base-p[2]) + '" width="' + p[1] + '" height="' + p[2] + '" rx="8" fill="' + t.c[k % t.c.length] + '"/>';
+    });
+    return s + '</svg>';
+  }
+  var gal = document.getElementById("gal");
+  gal.innerHTML = items.map(function(t){
+    return '<figure class="tile" data-g="' + t.g + '">' + tile(t) + '<figcaption>' + t.n + '</figcaption></figure>';
+  }).join("");
+
+  document.getElementById("filters").addEventListener("click", function(e){
+    var b = e.target.closest(".fbtn"); if(!b) return;
+    var f = b.getAttribute("data-f");
+    this.querySelectorAll(".fbtn").forEach(function(x){ x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    gal.querySelectorAll(".tile").forEach(function(t){ t.hidden = !(f === "todos" || t.getAttribute("data-g") === f); });
+  });
+})();
+</script>
+
+</body>
+</html>
